@@ -2,11 +2,7 @@ import * as React from "react";
 import { FolderTree, BigCard, Topic } from "@codeponder/ui";
 import "prismjs";
 import { Heading, Box } from "rebass";
-<<<<<<< HEAD
 import { orderBy } from "lodash";
-=======
-import orderby from "lodash.orderby";
->>>>>>> Sort repo tree by folder and files
 
 import { GitHubApolloClientContext } from "../components/GithubApolloClientContext";
 import { NextContextWithApollo } from "../types/NextContextWithApollo";
