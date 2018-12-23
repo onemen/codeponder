@@ -41,7 +41,7 @@ export const PostRow: React.SFC<Props> = ({
   createdAt,
 }) => {
   const linkProps = getLinkProps();
-  const dtString = distanceInWordsStrict(new Date(), Date.parse(createdAt), {
+  const dtString = distanceInWordsStrict(new Date(), createdAt, {
     addSuffix: true,
   });
 
