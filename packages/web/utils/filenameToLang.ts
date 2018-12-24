@@ -69,7 +69,6 @@ const extensions: { [key: string]: string } = {
   vb: "vbnet",
   vbs: "vbscript",
   ts: "typescript",
-  tsx: "jsx",
   yml: "yaml",
   hpp: "c++",
   h: "c",
