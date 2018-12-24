@@ -6,6 +6,7 @@ import "prismjs/plugins/line-numbers/prism-line-numbers.css";
 import "prismjs/plugins/line-numbers/prism-line-numbers.js";
 import "prismjs/plugins/line-highlight/prism-line-highlight.css";
 import "prismjs/plugins/line-highlight/prism-line-highlight.js";
+import "./highlight.css";
 
 import styled from "styled-components";
 import Highlight, { defaultProps } from "prism-react-renderer";
@@ -25,11 +26,46 @@ interface Props {
 interface HighlightProps {
   code: string | null;
   lang: string;
+  dataLines: string[];
 }
 
 //XXX try to use prism with hooks
+function isLineSelected(line: number, ranges: string[]): boolean {
+  return ranges.some(range => {
+    if (range.includes("-")) {
+      const rangeArr = range.split("-");
+      // console.log(
+      //   line,
+      //   range,
+      //   rangeArr,
+      //   Number(rangeArr[0]),
+      //   Number(rangeArr[1]),
+      //   " test 1 " +
+      //     Number(rangeArr[0]) +
+      //     " >=" +
+      //     line +
+      //     " " +
+      //     (Number(rangeArr[0]) >= line),
+      //   " test 2 " +
+      //     line +
+      //     " <=" +
+      //     Number(rangeArr[1]) +
+      //     " " +
+      //     (line <= Number(rangeArr[1])),
+      //   " test " + (Number(rangeArr[0]) >= line && line <= Number(rangeArr[1]))
+      // );
+      return line >= Number(rangeArr[0]) && line <= Number(rangeArr[1]);
+    }
 
-const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
+    return Number(range) == line;
+  });
+}
+
+const HighlightCode: React.SFC<HighlightProps> = ({
+  code,
+  lang,
+  dataLines,
+}) => {
   const hasLoadedLanguage = useRef(false);
   // const [tokens, setTokens] = useState([]);
   const [highlightedCode, setHighlightedCode] = useState("");
@@ -57,6 +93,10 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
   `;
 
   // const LineNo = "border-right: 1px solid rgba(0, 0, 0, 0.9);display: inline-block;margin-right: 0.65em;width: 2em; opacity: 0.5;padding-left: 0.65em";
+
+  function setTokens(tokens: any) {
+    console.log(tokens);
+  }
 
   useEffect(() => {
     // if (!hasLoadedLanguage.current) {
@@ -88,18 +128,35 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
         .then(() => {
           hasLoadedLanguage.current = true;
 
+          console.log("hook wrap exist", Prism.hooks.all["wrap"]);
+
+          // Prism.hooks.add("wrap", args => {
+          //   console.log("wrap", { ...args });
+          //   setTokens(args.tokens);
+          // });
+
           let innerHTML = Prism.highlight(
             code || "",
             Prism.languages[lang],
             lang || undefined
           ).split("\n");
           const width = Math.max(String(innerHTML.length).length, 2);
+          console.log("selected dataLines", dataLines);
           innerHTML = innerHTML
-            .map(
-              (line: string, i: number) =>
-                `<span style="${LineNo}width:${width}em;">${i +
-                  1}</span>${line}`
-            )
+            .map((line: string, i: number) => {
+              // console.log(
+              //   "isLineSelected",
+              //   i + 1,
+              //   isLineSelected(i + 1, dataLines)
+              // );
+              const selected = isLineSelected(i + 1, dataLines)
+                ? `background: red;`
+                : // ? `background: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0))`
+                  "";
+
+              return `<span class="token-line" style="${selected}"><span style="${LineNo}width:${width}em;">${i +
+                1}</span>${line}</span>`;
+            })
             .join("\n");
           setHighlightedCode(innerHTML);
         })
@@ -108,7 +165,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
   });
 
   return (
-    <pre className={`language-${lang}`}>
+    <pre className={`language-${lang}`} data-lines={dataLines.join(" ")}>
       <code
         className={`language-${lang}`}
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
@@ -290,7 +347,7 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
                 );
               })} */}
             </pre>
-            <HighlightCode code={code} lang={lang} />
+            <HighlightCode code={code} lang={lang} dataLines={dataLines} />
             <QuestionSection
               variables={variables}
               code={code || ""}

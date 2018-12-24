@@ -72,7 +72,7 @@ export const loadLanguage = async (lang: string) => {
     }
   }
 
-  console.log(`prismjs/components/prism-${lang}`);
+  // console.log(`prismjs/components/prism-${lang}`);
 
   return import(`prismjs/components/prism-${lang}`);
 };
