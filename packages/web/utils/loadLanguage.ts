@@ -59,7 +59,7 @@ const langDepMap: { [key: string]: string | string[] } = {
   velocity: "markup",
   wiki: "markup",
   xeora: "markup",
-  xquery: "markup"
+  xquery: "markup",
 };
 
 export const loadLanguage = async (lang: string) => {
@@ -71,6 +71,8 @@ export const loadLanguage = async (lang: string) => {
       await Promise.all(deps.map(loadLanguage));
     }
   }
+
+  console.log(`prismjs/components/prism-${lang}`);
 
   return import(`prismjs/components/prism-${lang}`);
 };
