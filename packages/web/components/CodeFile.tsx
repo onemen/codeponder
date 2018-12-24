@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism.css";
 import "prismjs/themes/prism-coy.css";
@@ -14,6 +14,7 @@ import { FindCodeReviewQuestionsComponent } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { QuestionSection } from "./QuestionSection";
+import { array } from "yup";
 
 interface Props {
   code: string | null;
@@ -30,7 +31,32 @@ interface HighlightProps {
 
 const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
   const hasLoadedLanguage = useRef(false);
-  const [tokens, setTokens] = useState([]);
+  // const [tokens, setTokens] = useState([]);
+  const [highlightedCode, setHighlightedCode] = useState("");
+
+  // Prism.hooks.add("after-tokenize", args => {
+  //   console.log("after-tokenize", { ...args });
+  //   setTokens(args.tokens);
+  // });
+  //   Prism.highlight(
+  //     code || "",
+  //     Prism.languages[lang],
+  //     lang || undefined
+  //   );
+
+  const LineNo = `
+    border-right: 1px solid rgba(0, 0, 0, 0.9);
+    display: inline-block;
+    margin-right: 0.65em;
+    user-select: none;
+    // opacity: 0.5;
+    // padding: 0 0.7em;
+    color: #999;
+    padding-right: 0.8em;
+    text-align: right;
+  `;
+
+  // const LineNo = "border-right: 1px solid rgba(0, 0, 0, 0.9);display: inline-block;margin-right: 0.65em;width: 2em; opacity: 0.5;padding-left: 0.65em";
 
   useEffect(() => {
     // if (!hasLoadedLanguage.current) {
@@ -61,10 +87,84 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
       loadLanguage(lang)
         .then(() => {
           hasLoadedLanguage.current = true;
+
+          let innerHTML = Prism.highlight(
+            code || "",
+            Prism.languages[lang],
+            lang || undefined
+          ).split("\n");
+          const width = Math.max(String(innerHTML.length).length, 2);
+          innerHTML = innerHTML
+            .map(
+              (line: string, i: number) =>
+                `<span style="${LineNo}width:${width}em;">${i +
+                  1}</span>${line}`
+            )
+            .join("\n");
+          setHighlightedCode(innerHTML);
         })
         .catch();
     }
   });
+
+  return (
+    <pre className={`language-${lang}`}>
+      <code
+        className={`language-${lang}`}
+        dangerouslySetInnerHTML={{ __html: highlightedCode }}
+      />
+    </pre>
+  );
+
+  let codeRef = React.createRef();
+
+  // function setHighligh() {
+  //   console.log("in setHighligh", { innerHTML });
+  //   return { __html: innerHTML };
+  // }
+
+  // let innerHTML = "";
+  return (
+    <pre
+      ref={() => {
+        // const element = document.createElement("code");
+        // element.className = `language-${lang}`;
+        // element.textContent = code;
+        // Prism.highlightElement(element);
+        // innerHTML = element.innerHTML
+
+        innerHTML = Prism.highlight(
+          code || "",
+          Prism.languages[lang],
+          lang || undefined
+        )
+          .split("\n")
+          .map((line: string, i: number) => `<span>${i + 1}</span>${line}`)
+          .join("\n");
+        console.log("set innerHTML", { innerHTML });
+        // dangerouslySetInnerHTML = {{ __html: innerHTML }}
+        codeRef.current && codeRef.current.setAttribute("_tmp", innerHTML);
+      }}
+      className={`language-${lang}`}
+    >
+      <code ref={codeRef} dangerouslySetInnerHTML={setHighligh(codeRef)} />
+    </pre>
+  );
+
+  // const highlightedCode = Prism.highlight(
+  //   code || "",
+  //   Prism.languages[lang],
+  //   lang || undefined
+  // );
+
+  // const innerHTML = highlightedCode
+  //   .split("\n")
+  //   .map((line, i) => `<span>${i}</span>${line}`);
+  // return (
+  //   <pre>
+  //     <code className=""></code>
+  //   </pre>
+  // )
 
   // return tokens.map((line, i) => {
   //   console.log(i, line);
@@ -78,15 +178,8 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
   //   );
   // });
 
-  const LineNo = styled.span`
-    border-right: 1px solid rgba(0, 0, 0, 0.9);
-    display: inline-block;
-    margin-right: 0.65em;
-    width: 2em;
-    user-select: none;
-    opacity: 0.5;
-    padding-left: 0.65em;
-  `;
+  // const grammar = Prism.languages[lang];
+  // console.log({ lang, grammar });
 
   return (
     <Highlight {...defaultProps} code={code} language={lang}>
@@ -111,10 +204,10 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang }) => {
                     {line.map((token, j) => {
                       const { className, children, key } = getTokenProps({
                         token,
-                        j,
+                        key: j,
                       });
                       const tokenProp = { className, children, key };
-                      console.log(i, tokenProp);
+                      // console.log(i, tokenProp);
                       return <span {...tokenProp} />;
                     })}
                   </div>
