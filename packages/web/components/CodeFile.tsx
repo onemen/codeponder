@@ -1,11 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
-//import "prismjs/themes/prism.css";
 import "prismjs/themes/prism-coy.css";
 
 import styled, { css } from "styled-components";
-import Highlight, { defaultProps, Language } from "prism-react-renderer";
-//import theme from "prism-react-renderer/themes/vsDarkPlus";
+import Highlight, { defaultProps } from "prism-react-renderer";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -27,7 +25,8 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
      & .token-line:nth-child(n+${current.startingLineNum}):nth-child(-n+${
       current.endingLineNum
     }) {
-      background-color: #ffffcc;
+      background: hsla(24, 20%, 50%,.08);
+      background: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));
     }
      `);
   }, "");
@@ -38,8 +37,8 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
 };
 
 interface HighlightProps {
-  code: string | null;
-  lang: Language;
+  code: string;
+  lang: string;
   data: FindCodeReviewQuestionsQuery;
 }
 
@@ -63,27 +62,23 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
   }
 
   const Pre = styled.pre`
-    text-align: left;
-    margin: 4em 0;
-    padding: 0.5em;
-
-    & .token-line {
-      line-height: 1.3em;
-      height: 1.3em;
-    }
-
-    & .token-line:nth-child(odd) {
-      background: #f3faff;
+    & code[class*="language-"] {
+      padding-left: 0;
     }
 
     ${SelectLines(data)};
   `;
 
   const LineNo = styled.span`
+    border-right: 1px solid #999;
     display: inline-block;
-    width: 2em;
+    color: #999;
+    letter-spacing: -1px;
+    margin-right: 0.65em;
+    padding-right: 0.8em;
+    text-align: right;
     user-select: none;
-    opacity: 0.3;
+    width: 3em;
   `;
 
   // Use original Prism.
@@ -97,14 +92,16 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
     <Highlight {...props} theme={undefined} code={code} language={lang}>
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <Pre className={className} style={style}>
-          {tokens.map((line, i) => (
-            <div {...getLineProps({ line, key: i })}>
-              <LineNo>{i + 1}</LineNo>
-              {line.map((token, key) => {
-                return <span {...getTokenProps({ token, key })} />;
-              })}
-            </div>
-          ))}
+          <code className={className}>
+            {tokens.map((line, i) => (
+              <div {...getLineProps({ line, key: i })}>
+                <LineNo>{i + 1}</LineNo>
+                {line.map((token, key) => {
+                  return <span {...getTokenProps({ token, key })} />;
+                })}
+              </div>
+            ))}
+          </code>
         </Pre>
       )}
     </Highlight>
@@ -112,8 +109,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
-  // const lang: Language = path ? filenameToLang(path) : "";
-  const lang: Language = path ? filenameToLang(path) : "";
+  const lang = path ? filenameToLang(path) : "";
   const variables = {
     path,
     postId,
@@ -128,7 +124,7 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
 
         return (
           <>
-            <HighlightCode code={code} lang={lang} data={data} />
+            <HighlightCode code={code || ""} lang={lang} data={data} />
             <QuestionSection
               variables={variables}
               code={code || ""}
