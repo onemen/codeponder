@@ -1,11 +1,12 @@
 import styled from "styled-components";
 import { TextEditor } from "./CommentForm";
 import { CreateCodeReviewQuestionComponent } from "./apollo-components";
+import { MyButton } from "@codeponder/ui";
 
 export const getBorderColor = (type: string) => {
   const colors: { [key: string]: string } = {
     question: "rgb(238, 238, 88)",
-    replay: "rgb(235, 73, 144)",
+    reply: "rgb(235, 73, 144)",
     editor: "rgb(0, 238, 88)",
   };
   return colors[type];
@@ -37,8 +38,10 @@ const CommentBoxContainer = styled.div<{ color?: string }>`
   }
 
   & .comment-title {
-    padding: 0.5em;
+    align-items: center;
     border-bottom: 1px solid #999;
+    display: flex;
+    padding: 0.5em;
   }
 
   & .comment-creator {
@@ -56,6 +59,10 @@ const CommentBoxContainer = styled.div<{ color?: string }>`
     margin: 0;
     padding: 0.5em;
     white-space: normal;
+  }
+
+  & .btn-reply {
+    margin-left: auto;
   }
 `;
 
@@ -80,8 +87,9 @@ export const CommentBox: React.SFC<CommentProps> = ({
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
         {isOwner ? <span className="repo-owner">Author</span> : null}
-        <span style={{ marginLeft: "20px" }}>{type}</span>
-        <span style={{ marginLeft: "20px" }}>{index}</span>
+        <MyButton variant="form" className="btn-reply primary">
+          Reply
+        </MyButton>
       </div>
       <p className="comment-text">
         {text}
@@ -147,12 +155,6 @@ export const AddComment: React.SFC<AddCommentProps> = ({
           }
 
           closeCommentEditor();
-          console.log("resulr from textEditor form", {
-            cancel,
-            startingLineNum,
-            endingLineNum,
-            text,
-          });
         };
         return (
           <CommentBoxContainer color={getBorderColor("editor")}>

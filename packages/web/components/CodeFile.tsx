@@ -51,7 +51,7 @@ const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
     text: text,
     username: creator.username,
     isOwner: true, // Todo: need to ger real value
-    type: (__typename || "").includes("Reply") ? "replay" : "question",
+    type: (__typename || "").includes("Reply") ? "reply" : "question",
   });
 
   return prop.findCodeReviewQuestions.reduce((comments: Comments, props) => {
@@ -61,20 +61,6 @@ const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
     props.replies.forEach(reply => comments[line].push(comment(reply)));
     return comments;
   }, {});
-};
-
-const insertCommentsToCode = (
-  tokens: Token[][],
-  data: FindCodeReviewQuestionsQuery
-): (Token[] | CommentProps)[] => {
-  const comments = normalizeQuestions(data);
-  return tokens.reduce((lines: (Token[] | CommentProps)[], line, i) => {
-    lines.push(line);
-    if (comments[i + 1]) {
-      lines.push(...comments[i + 1]);
-    }
-    return lines;
-  }, []);
 };
 
 interface HighlightProps {
@@ -122,38 +108,38 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   return (
     <Highlight Prism={Prism} code={code} language={lang}>
       {({ className, style, tokens, getLineProps, getTokenProps }) => {
-        const mixedTokens = insertCommentsToCode(tokens, data);
+        const comments = normalizeQuestions(data);
         return (
           <Pre className={className} style={style}>
             <code className={`code-content ${className}`}>
-              {mixedTokens.map((line, i) => {
-                return Array.isArray(line) ? (
-                  <div {...getLineProps({ line, key: i })}>
-                    <LineNo
-                      onClick={() => {
-                        setShowEditor(i);
-                      }}
-                    >
-                      {i + 1}
-                    </LineNo>
-                    {line.map((token, key) => (
-                      <span {...getTokenProps({ token, key })} />
+              {tokens.map((line, i) => (
+                <div {...getLineProps({ line, key: i })}>
+                  <LineNo
+                    onClick={() => {
+                      setShowEditor(i);
+                    }}
+                  >
+                    {i + 1}
+                  </LineNo>
+                  {line.map((token, key) => (
+                    <span {...getTokenProps({ token, key })} />
+                  ))}
+                  {comments[i + 1] &&
+                    comments[i + 1].map((comment, key) => (
+                      <CommentBox {...comment} key={i * 1000 + key} />
                     ))}
-                    {showEditor && i == showEditor ? (
-                      <AddComment
-                        line={i + 1}
-                        closeCommentEditor={() => setShowEditor(0)}
-                        code={code}
-                        programmingLanguage={lang}
-                        postId={postId}
-                        path={path}
-                      />
-                    ) : null}
-                  </div>
-                ) : (
-                  <CommentBox {...line} key={tokens.length + i} index={i} />
-                );
-              })}
+                  {showEditor && i == showEditor ? (
+                    <AddComment
+                      line={i + 1}
+                      closeCommentEditor={() => setShowEditor(0)}
+                      code={code}
+                      programmingLanguage={lang}
+                      postId={postId}
+                      path={path}
+                    />
+                  ) : null}
+                </div>
+              ))}
             </code>
           </Pre>
         );

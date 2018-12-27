@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { useInputValue } from "../utils/useInputValue";
 import styled from "styled-components";
+import { MyButton } from "@codeponder/ui";
 
 const Container = styled.div`
   display: flex;
@@ -30,44 +31,6 @@ const Container = styled.div`
     display: flex;
     justify-content: flex-end;
     padding: 0.4em;
-  }
-
-  & .btn {
-    border: 1px solid rgba(27, 31, 35, 0.2);
-    border-radius: 0.25em;
-    color: rgb(36, 41, 46);
-    font-size: 1em;
-    font-weight: 600;
-    margin-right: 1em;
-    padding: 0.375em 0.75em;
-  }
-
-  & .btn:hover {
-    background-color: #e6ebf1;
-    background-image: linear-gradient(-180deg, #f0f3f6, #e6ebf1 90%);
-    background-position: -0.5em;
-    border-color: rgba(27, 31, 35, 0.35);
-  }
-
-  & .btn-primary {
-    background-color: #28a745;
-    background-image: linear-gradient(-180deg, #34d058, #28a745 90%);
-    color: #fff;
-  }
-
-  & .btn-primary:hover {
-    background-color: #269f42;
-    background-image: linear-gradient(-180deg, #2fcb53, #269f42 90%);
-    background-position: -0.5em;
-    border-color: rgba(27, 31, 35, 0.5);
-  }
-
-  & .btn-primary.disabled {
-    background-color: #94d3a2;
-    background-image: none;
-    border-color: rgba(27, 31, 35, 0.2);
-    box-shadow: none;
-    color: hsla(0, 0%, 100%, 0.75);
   }
 `;
 
@@ -116,26 +79,30 @@ export const TextEditor = ({ line, getFormResult }: TextEditorProps) => {
         onChange={textChange}
       />
       <div className="btn-box">
-        <button
+        <MyButton
+          variant="form"
           className="btn"
           onClick={() => {
             getFormResult({ cancel: true });
           }}
         >
           Cancel
-        </button>
-        <button
-          className={`btn btn-primary ${text ? "" : "disabled"}`}
+        </MyButton>
+        <MyButton
+          variant="form"
+          {...(text ? "" : "disabled")}
+          className={`primary ${text ? "" : "disabled"}`}
           onClick={() => {
-            getFormResult({
-              startingLineNum: parseInt(startingLineNum, 10),
-              endingLineNum: parseInt(endingLineNum, 10),
-              text,
-            });
+            text.trim() &&
+              getFormResult({
+                startingLineNum: parseInt(startingLineNum, 10),
+                endingLineNum: parseInt(endingLineNum, 10),
+                text,
+              });
           }}
         >
           Save
-        </button>
+        </MyButton>
       </div>
     </Container>
   );
