@@ -13,7 +13,7 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import { QuestionSection } from "./QuestionSection";
+import { AddComment, CommentBox, CommentProps, LineNo } from "./Comment";
 
 interface Props {
   code: string | null;
@@ -38,123 +38,9 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
   `;
 };
 
-const getBorderColor = (type: string) => {
-  const colors: { [key: string]: string } = {
-    question: "rgb(238, 238, 88)",
-    replay: "rgb(235, 73, 144)",
-    editor: "rgb(0, 238, 88)",
-  };
-  return colors[type];
-};
-
-const LineNo = styled.a`
-  border-right: 1px solid #999;
-  display: inline-block;
-  color: #999;
-  letter-spacing: -1px;
-  margin-right: 0.65em;
-  padding-right: 0.8em;
-  text-align: right;
-  user-select: none;
-  width: 3em;
-`;
-
-const CommentBoxContainer = styled.div<{ color?: string; type?: string }>`
-  background-color: #fff;
-  /* display: flex; */
-  /* display: inline-block; */
-  /* border-left: 1px solid #999; */
-  /* margin-left: calc(3em - 0px); */
-  /*padding: 5px 0 5px 10px;*/
-  display: grid;
-  grid-template-columns: 3em auto;
-  grid-column-gap: 0.65em;
-
-  & .comment-innder-box {
-    border: 1px solid #999;
-    border-left: 10px solid ${p => p.color || getBorderColor("question")};
-    /* border-radius: 5px; */
-    display: ${p => (p.type == "editor" ? "flex" : "block")};
-    ${p => (p.type == "editor" ? "flex-direction: column" : "")};
-    margin: 4px 0;
-  }
-
-  & .comment-title {
-    padding: 0.5em;
-    border-bottom: 1px solid #999;
-  }
-
-  & .comment-creator {
-    font-weight: 600;
-  }
-
-  & .repo-owner {
-    background-color: rgb(253, 243, 218);
-    border: 1px solid rgb(233, 219, 205);
-    margin-left: 0.5em;
-    padding: 2px 4px;
-  }
-
-  & .comment-text {
-    margin: 0;
-    padding: 0.5em;
-    white-space: normal;
-  }
-
-  & textarea {
-    border: none;
-  }
-`;
-
-interface CommentProps {
-  text?: string;
-  username?: string;
-  isOwner?: boolean;
-  type: string;
-}
-
 interface Comments {
   [key: number]: CommentProps[];
 }
-
-const CommentBox: React.SFC<CommentProps> = ({
-  username,
-  text,
-  isOwner,
-  type,
-}) => (
-  <CommentBoxContainer type={type} color={getBorderColor(type)}>
-    <LineNo
-      style={{
-        cursor: "default",
-      }}
-    />
-    <div className="comment-innder-box">
-      <div className="comment-title">
-        <span className="comment-creator">{username}</span>
-        {isOwner ? <span className="repo-owner">Author</span> : null}
-        <span style={{ marginLeft: "20px" }}>{type}</span>
-      </div>
-      {type == "editor" ? (
-        <textarea
-          autoFocus
-          className="comment-text"
-          id="editor"
-          name="editor"
-          rows={5}
-        />
-      ) : (
-        <p className="comment-text">
-          {text}
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Est
-          consequuntur modi quas alias placeat aliquam vitae explicabo magni
-          saepe commodi. Corporis ullam ratione fugit optio tempore provident
-          voluptates commodi quasi!
-        </p>
-      )}
-    </div>
-  </CommentBoxContainer>
-);
 
 const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
   const comment = ({
@@ -195,9 +81,17 @@ interface HighlightProps {
   code: string;
   lang: string;
   data: FindCodeReviewQuestionsQuery;
+  postId: string;
+  path?: string;
 }
 
-const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
+const HighlightCode: React.SFC<HighlightProps> = ({
+  code,
+  lang,
+  data,
+  postId,
+  path,
+}) => {
   const hasLoadedLanguage = useRef(false);
   const [loading, setloading] = useState(true);
   const [showEditor, setShowEditor] = useState(0);
@@ -236,8 +130,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
                 return Array.isArray(line) ? (
                   <div {...getLineProps({ line, key: i })}>
                     <LineNo
-                      onClick={e => {
-                        // console.log(e.target.innerText);
+                      onClick={() => {
                         setShowEditor(i);
                       }}
                     >
@@ -246,31 +139,19 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
                     {line.map((token, key) => (
                       <span {...getTokenProps({ token, key })} />
                     ))}
-                    {/*showEditor && i == showEditor ? (
-                      <div
-                        style={{
-                          display: "flex",
-                        }}
-                      >
-                        <LineNo style={{ cursor: "default" }} />
-                        <textarea
-                          id="story"
-                          name="story"
-                          rows={5}
-                          style={{
-                            flex: "1",
-                            padding: "0.5em",
-                          }}
-                        />
-                        <CommentBox type="Add Comment" />
-                      </div>
-                        ) : null*/}
                     {showEditor && i == showEditor ? (
-                      <CommentBox type="editor" />
+                      <AddComment
+                        line={i + 1}
+                        closeCommentEditor={() => setShowEditor(0)}
+                        code={code}
+                        programmingLanguage={lang}
+                        postId={postId}
+                        path={path}
+                      />
                     ) : null}
                   </div>
                 ) : (
-                  <CommentBox {...line} key={tokens.length + i} />
+                  <CommentBox {...line} key={tokens.length + i} index={i} />
                 );
               })}
             </code>
@@ -296,16 +177,13 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
         }
 
         return (
-          <>
-            <HighlightCode code={code || ""} lang={lang} data={data} />
-            <QuestionSection
-              variables={variables}
-              code={code || ""}
-              postId={postId}
-              programmingLanguage={lang}
-              path={path}
-            />
-          </>
+          <HighlightCode
+            code={code || ""}
+            lang={lang}
+            data={data}
+            postId={postId}
+            path={path}
+          />
         );
       }}
     </FindCodeReviewQuestionsComponent>
