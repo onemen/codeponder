@@ -38,19 +38,45 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
   `;
 };
 
-const YELLOW = "rgb(238, 238, 88)";
-const RED = "rgb(238, 238, 88)";
+const getBorderColor = (type: string) => {
+  const colors: { [key: string]: string } = {
+    question: "rgb(238, 238, 88)",
+    replay: "rgb(235, 73, 144)",
+    editor: "rgb(0, 238, 88)",
+  };
+  return colors[type];
+};
 
-const CommentBoxContainer = styled.div<{ color?: string }>`
+const LineNo = styled.a`
+  border-right: 1px solid #999;
+  display: inline-block;
+  color: #999;
+  letter-spacing: -1px;
+  margin-right: 0.65em;
+  padding-right: 0.8em;
+  text-align: right;
+  user-select: none;
+  width: 3em;
+`;
+
+const CommentBoxContainer = styled.div<{ color?: string; type?: string }>`
   background-color: #fff;
-  margin-left: calc(3em - 0px);
-  border-left: 1px solid #999;
-  padding: 5px 0 5px 10px;
+  /* display: flex; */
+  /* display: inline-block; */
+  /* border-left: 1px solid #999; */
+  /* margin-left: calc(3em - 0px); */
+  /*padding: 5px 0 5px 10px;*/
+  display: grid;
+  grid-template-columns: 3em auto;
+  grid-column-gap: 0.65em;
 
   & .comment-innder-box {
     border: 1px solid #999;
-    border-left: 10px solid ${p => p.color || YELLOW};
-    border-radius: 5px;
+    border-left: 10px solid ${p => p.color || getBorderColor("question")};
+    /* border-radius: 5px; */
+    display: ${p => (p.type == "editor" ? "flex" : "block")};
+    ${p => (p.type == "editor" ? "flex-direction: column" : "")};
+    margin: 4px 0;
   }
 
   & .comment-title {
@@ -74,6 +100,10 @@ const CommentBoxContainer = styled.div<{ color?: string }>`
     padding: 0.5em;
     white-space: normal;
   }
+
+  & textarea {
+    border: none;
+  }
 `;
 
 interface CommentProps {
@@ -93,22 +123,35 @@ const CommentBox: React.SFC<CommentProps> = ({
   isOwner,
   type,
 }) => (
-  <CommentBoxContainer
-    color={type.includes("Reply") ? "rgb(235, 73, 144)" : "rgb(238, 238, 88)"}
-  >
+  <CommentBoxContainer type={type} color={getBorderColor(type)}>
+    <LineNo
+      style={{
+        cursor: "default",
+      }}
+    />
     <div className="comment-innder-box">
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
         {isOwner ? <span className="repo-owner">Author</span> : null}
-        <span style={{ marginLeft: "50%" }}>{type}</span>
+        <span style={{ marginLeft: "20px" }}>{type}</span>
       </div>
-      <p className="comment-text">
-        {text}
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Est
-        consequuntur modi quas alias placeat aliquam vitae explicabo magni saepe
-        commodi. Corporis ullam ratione fugit optio tempore provident voluptates
-        commodi quasi!
-      </p>
+      {type == "editor" ? (
+        <textarea
+          autoFocus
+          className="comment-text"
+          id="editor"
+          name="editor"
+          rows={5}
+        />
+      ) : (
+        <p className="comment-text">
+          {text}
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Est
+          consequuntur modi quas alias placeat aliquam vitae explicabo magni
+          saepe commodi. Corporis ullam ratione fugit optio tempore provident
+          voluptates commodi quasi!
+        </p>
+      )}
     </div>
   </CommentBoxContainer>
 );
@@ -122,7 +165,7 @@ const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
     text: text,
     username: creator.username,
     isOwner: true, // Todo: need to ger real value
-    type: __typename || "",
+    type: (__typename || "").includes("Reply") ? "replay" : "question",
   });
 
   return prop.findCodeReviewQuestions.reduce((comments: Comments, props) => {
@@ -157,6 +200,7 @@ interface HighlightProps {
 const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
   const hasLoadedLanguage = useRef(false);
   const [loading, setloading] = useState(true);
+  const [showEditor, setShowEditor] = useState(0);
 
   useEffect(() => {
     if (!hasLoadedLanguage.current) {
@@ -181,32 +225,49 @@ const HighlightCode: React.SFC<HighlightProps> = ({ code, lang, data }) => {
     ${SelectLines(data)};
   `;
 
-  const LineNo = styled.span`
-    border-right: 1px solid #999;
-    display: inline-block;
-    color: #999;
-    letter-spacing: -1px;
-    margin-right: 0.65em;
-    padding-right: 0.8em;
-    text-align: right;
-    user-select: none;
-    width: 3em;
-  `;
-
   return (
     <Highlight Prism={Prism} code={code} language={lang}>
       {({ className, style, tokens, getLineProps, getTokenProps }) => {
         const mixedTokens = insertCommentsToCode(tokens, data);
         return (
           <Pre className={className} style={style}>
-            <code className={className}>
+            <code className={`code-content ${className}`}>
               {mixedTokens.map((line, i) => {
                 return Array.isArray(line) ? (
                   <div {...getLineProps({ line, key: i })}>
-                    <LineNo>{i + 1}</LineNo>
+                    <LineNo
+                      onClick={e => {
+                        // console.log(e.target.innerText);
+                        setShowEditor(i);
+                      }}
+                    >
+                      {i + 1}
+                    </LineNo>
                     {line.map((token, key) => (
                       <span {...getTokenProps({ token, key })} />
                     ))}
+                    {/*showEditor && i == showEditor ? (
+                      <div
+                        style={{
+                          display: "flex",
+                        }}
+                      >
+                        <LineNo style={{ cursor: "default" }} />
+                        <textarea
+                          id="story"
+                          name="story"
+                          rows={5}
+                          style={{
+                            flex: "1",
+                            padding: "0.5em",
+                          }}
+                        />
+                        <CommentBox type="Add Comment" />
+                      </div>
+                        ) : null*/}
+                    {showEditor && i == showEditor ? (
+                      <CommentBox type="editor" />
+                    ) : null}
                   </div>
                 ) : (
                   <CommentBox {...line} key={tokens.length + i} />
