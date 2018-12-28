@@ -106,7 +106,7 @@ declare module "prism-react-renderer" {
     [type: string]: StyleObj;
   };
 
-  export type Token = {
+  type Token = {
     types: string[];
     content: string;
     empty?: boolean;

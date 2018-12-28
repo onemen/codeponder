@@ -70,16 +70,19 @@ export interface CommentProps {
   text?: string;
   username?: string;
   isOwner?: boolean;
-  type: string;
-  index?: number;
+  type: "reply" | "question";
 }
 
-export const CommentBox: React.SFC<CommentProps> = ({
+export interface CommentFunctionProps extends CommentProps {
+  onReply: Function;
+}
+
+export const CommentBox: React.SFC<CommentFunctionProps> = ({
   username,
   text,
   isOwner,
   type,
-  index,
+  onReply,
 }) => (
   <CommentBoxContainer color={getBorderColor(type)}>
     <LineNo cursor="default" />
@@ -87,7 +90,11 @@ export const CommentBox: React.SFC<CommentProps> = ({
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
         {isOwner ? <span className="repo-owner">Author</span> : null}
-        <MyButton variant="form" className="btn-reply primary">
+        <MyButton
+          variant="form"
+          className="btn-reply primary"
+          onClick={() => onReply()}
+        >
           Reply
         </MyButton>
       </div>
@@ -153,7 +160,6 @@ export const AddComment: React.SFC<AddCommentProps> = ({
             });
             console.log(response);
           }
-
           closeCommentEditor();
         };
         return (

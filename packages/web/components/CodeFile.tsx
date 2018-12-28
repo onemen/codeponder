@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 
+import Highlight from "prism-react-renderer";
 import styled, { css } from "styled-components";
-import Highlight, { Token } from "prism-react-renderer";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -14,6 +14,7 @@ import {
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { AddComment, CommentBox, CommentProps, LineNo } from "./Comment";
+import { IconButton } from "@codeponder/ui";
 
 interface Props {
   code: string | null;
@@ -42,12 +43,14 @@ interface Comments {
   [key: number]: CommentProps[];
 }
 
-const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
+const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
   const comment = ({
     text,
     creator,
     __typename,
-  }: CodeReviewQuestionInfoFragment | QuestionReplyInfoFragment) => ({
+  }:
+    | CodeReviewQuestionInfoFragment
+    | QuestionReplyInfoFragment): CommentProps => ({
     text: text,
     username: creator.username,
     isOwner: true, // Todo: need to ger real value
@@ -61,6 +64,24 @@ const normalizeQuestions = (prop: FindCodeReviewQuestionsQuery): Comments => {
     props.replies.forEach(reply => comments[line].push(comment(reply)));
     return comments;
   }, {});
+};
+
+const setIsHovered = (
+  { current }: React.RefObject<HTMLElement>,
+  { target: elm }: any,
+  force: boolean
+) => {
+  while (elm && elm != current && !elm.classList.contains("token-line")) {
+    elm = elm.parentNode;
+  }
+  if (elm && current) {
+    current
+      .querySelectorAll(".is-hovered")
+      .forEach(button => button.classList.toggle("is-hovered", false));
+    if (force) {
+      elm.childNodes[1].classList.add("is-hovered");
+    }
+  }
 };
 
 interface HighlightProps {
@@ -79,6 +100,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   path,
 }) => {
   const hasLoadedLanguage = useRef(false);
+  const codeRef = useRef<HTMLElement>(null);
   const [loading, setloading] = useState(true);
   const [showEditor, setShowEditor] = useState(0);
 
@@ -108,25 +130,43 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   return (
     <Highlight Prism={Prism} code={code} language={lang}>
       {({ className, style, tokens, getLineProps, getTokenProps }) => {
-        const comments = normalizeQuestions(data);
+        const comments = getCommentsForFile(data);
         return (
           <Pre className={className} style={style}>
-            <code className={`code-content ${className}`}>
+            <code
+              className={`code-content ${className}`}
+              ref={codeRef}
+              onMouseOut={(e: any): void => {
+                setIsHovered(codeRef, e, false);
+              }}
+              onMouseOver={(e: any): void => {
+                setIsHovered(codeRef, e, true);
+              }}
+            >
               {tokens.map((line, i) => (
                 <div {...getLineProps({ line, key: i })}>
-                  <LineNo
+                  <LineNo>{i + 1}</LineNo>
+                  <IconButton
+                    style={{ margin: "-2px 0px -2px -20px" }}
+                    variant="primary"
+                    icon="plus"
+                    className="hidden"
                     onClick={() => {
                       setShowEditor(i);
                     }}
-                  >
-                    {i + 1}
-                  </LineNo>
+                  />
                   {line.map((token, key) => (
                     <span {...getTokenProps({ token, key })} />
                   ))}
                   {comments[i + 1] &&
                     comments[i + 1].map((comment, key) => (
-                      <CommentBox {...comment} key={i * 1000 + key} />
+                      <CommentBox
+                        {...comment}
+                        key={i * 1000 + key}
+                        onReply={() => {
+                          setShowEditor(i);
+                        }}
+                      />
                     ))}
                   {showEditor && i == showEditor ? (
                     <AddComment
