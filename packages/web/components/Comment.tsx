@@ -1,6 +1,9 @@
 import styled from "styled-components";
 import { TextEditor } from "./CommentForm";
-import { CreateCodeReviewQuestionComponent } from "./apollo-components";
+import {
+  CreateCodeReviewQuestionComponent,
+  FindCodeReviewQuestionsQuery,
+} from "./apollo-components";
 import { MyButton } from "@codeponder/ui";
 
 export const getBorderColor = (type: string) => {
@@ -67,6 +70,8 @@ const CommentBoxContainer = styled.div<{ color?: string }>`
 `;
 
 export interface CommentProps {
+  startingLineNum?: number; // not include in reply
+  endingLineNum?: number; // not include in reply
   text?: string;
   username?: string;
   isOwner?: boolean;
@@ -110,7 +115,8 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
 );
 
 export interface AddCommentProps {
-  line: number;
+  startingLineNum?: number; // not exist before the first commnet created
+  endingLineNum: number;
   closeCommentEditor: Function;
   code?: string;
   path?: string;

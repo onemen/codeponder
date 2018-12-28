@@ -58,10 +58,16 @@ const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
   });
 
   return prop.findCodeReviewQuestions.reduce((comments: Comments, props) => {
-    const line = props.endingLineNum;
-    comments[line] = comments[line] || [];
-    comments[line].push(comment(props));
-    props.replies.forEach(reply => comments[line].push(comment(reply)));
+    const startingLineNum = props.startingLineNum;
+    const endingLineNum = props.endingLineNum;
+    const key = endingLineNum;
+    comments[key] = comments[key] || [];
+    comments[key].push({
+      startingLineNum,
+      endingLineNum,
+      ...comment(props),
+    });
+    props.replies.forEach(reply => comments[key].push(comment(reply)));
     return comments;
   }, {});
 };
@@ -168,16 +174,25 @@ const HighlightCode: React.SFC<HighlightProps> = ({
                         }}
                       />
                     ))}
-                  {showEditor && i == showEditor ? (
-                    <AddComment
-                      line={i + 1}
-                      closeCommentEditor={() => setShowEditor(0)}
-                      code={code}
-                      programmingLanguage={lang}
-                      postId={postId}
-                      path={path}
-                    />
-                  ) : null}
+                  {showEditor && i == showEditor
+                    ? () => {
+                        const isReplay = !!comments[i + 1];
+                        return (
+                          <AddComment
+                            isReplay={isReplay}
+                            startingLineNum={
+                              isReplay && comments[i + 1][0].startingLineNum
+                            }
+                            endingLineNum={i + 1}
+                            closeCommentEditor={() => setShowEditor(0)}
+                            code={code}
+                            programmingLanguage={lang}
+                            postId={postId}
+                            path={path}
+                          />
+                        );
+                      }
+                    : null}
                 </div>
               ))}
             </code>

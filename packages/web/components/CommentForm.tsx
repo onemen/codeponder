@@ -35,13 +35,22 @@ const Container = styled.div`
 `;
 
 interface TextEditorProps {
-  line: number;
+  startingLineNum: number;
+  endingLineNum: number;
   getFormResult: Function;
+  type: "reply" | "question";
 }
 
-export const TextEditor = ({ line, getFormResult }: TextEditorProps) => {
-  const [startingLineNum, startingLineNumChange] = useInputValue(String(line));
-  const [endingLineNum, endingLineNumChange] = useInputValue(String(line));
+export const TextEditor = ({
+  startingLineNum,
+  endingLineNum,
+  getFormResult,
+  type,
+}: TextEditorProps) => {
+  const [start, startingLineNumChange] = useInputValue(
+    String(startingLineNum) || String(endingLineNum)
+  );
+  const [end, endingLineNumChange] = useInputValue(String(endingLineNum));
   const [text, textChange] = useInputValue("");
   return (
     <Container>
@@ -50,11 +59,12 @@ export const TextEditor = ({ line, getFormResult }: TextEditorProps) => {
         <label>
           Starting Line:
           <input
+            disabled={type == "reply"}
             name="startingLineNum"
             type="number"
             min="1"
-            max={line}
-            value={startingLineNum}
+            max={endingLineNum}
+            value={start}
             onChange={startingLineNumChange}
           />
         </label>
@@ -64,7 +74,7 @@ export const TextEditor = ({ line, getFormResult }: TextEditorProps) => {
             disabled
             name="endingLineNum"
             type="number"
-            value={endingLineNum}
+            value={end}
             onChange={endingLineNumChange}
           />
         </label>
@@ -95,8 +105,8 @@ export const TextEditor = ({ line, getFormResult }: TextEditorProps) => {
           onClick={() => {
             text.trim() &&
               getFormResult({
-                startingLineNum: parseInt(startingLineNum, 10),
-                endingLineNum: parseInt(endingLineNum, 10),
+                startingLineNum: parseInt(start, 10),
+                endingLineNum: parseInt(end, 10),
                 text,
               });
           }}
