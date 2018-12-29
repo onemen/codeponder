@@ -3,6 +3,7 @@ import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 import Highlight from "prism-react-renderer";
 import { IconButton, styled, css } from "@codeponder/ui";
+import { CommentBox, CommentProps, LineNo } from "./commnetUI";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -12,7 +13,8 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import { AddComment, CommentBox, CommentProps, LineNo } from "./Comment";
+import { CreateQuestion, QuestionProps } from "./QuestionForm";
+import { CreateQuestionReply, QuestionReply } from "./QuestionReply";
 
 interface Props {
   code: string | null;
@@ -43,15 +45,17 @@ interface Comments {
 
 const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
   const comment = ({
+    id,
     text,
     creator,
     __typename,
   }:
     | CodeReviewQuestionInfoFragment
     | QuestionReplyInfoFragment): CommentProps => ({
-    text: text,
+    id,
+    text,
     username: creator.username,
-    isOwner: true, // Todo: need to ger real value
+    isOwner: true, // Todo: need to get real value
     type: (__typename || "").includes("Reply") ? "reply" : "question",
   });
 
@@ -73,16 +77,21 @@ const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
 const setIsHovered = (
   { current }: React.RefObject<HTMLElement>,
   { target: elm }: any,
-  force: boolean
+  showButton: boolean
 ) => {
   while (elm && elm != current && !elm.classList.contains("token-line")) {
-    elm = elm.parentNode;
+    // hide the button when user hover over commets or line-number
+    const name = elm.classList[0];
+    if (name && name.match(/CommentBoxContainer|LineNo/)) {
+      showButton = false;
+    }
+    elm = elm.parentNode || null;
   }
   if (elm && current) {
     current
       .querySelectorAll(".is-hovered")
       .forEach(button => button.classList.toggle("is-hovered", false));
-    if (force) {
+    if (showButton) {
       elm.childNodes[1].classList.add("is-hovered");
     }
   }
@@ -172,25 +181,21 @@ const HighlightCode: React.SFC<HighlightProps> = ({
                         }}
                       />
                     ))}
-                  {showEditor && i == showEditor
-                    ? () => {
-                        const isReplay = !!comments[i + 1];
-                        return (
-                          <AddComment
-                            isReplay={isReplay}
-                            startingLineNum={
-                              isReplay && comments[i + 1][0].startingLineNum
-                            }
-                            endingLineNum={i + 1}
-                            closeCommentEditor={() => setShowEditor(0)}
-                            code={code}
-                            programmingLanguage={lang}
-                            postId={postId}
-                            path={path}
-                          />
-                        );
+                  {showEditor && i == showEditor ? (
+                    <AddComment
+                      isReplay={!!comments[i + 1]}
+                      questionId={comments[i + 1] && comments[i + 1][0].id}
+                      startingLineNum={
+                        comments[i + 1] && comments[i + 1][0].startingLineNum
                       }
-                    : null}
+                      endingLineNum={i + 1}
+                      closeCommentEditor={() => setShowEditor(0)}
+                      code={code}
+                      programmingLanguage={lang}
+                      postId={postId}
+                      path={path}
+                    />
+                  ) : null}
                 </div>
               ))}
             </code>
@@ -198,6 +203,18 @@ const HighlightCode: React.SFC<HighlightProps> = ({
         );
       }}
     </Highlight>
+  );
+};
+
+interface AddCommentProps extends QuestionProps {
+  questionId: string;
+}
+
+const AddComment: React.SFC<AddCommentProps> = ({ ...props }) => {
+  return props.isReplay ? (
+    <CreateQuestionReply {...props} />
+  ) : (
+    <CreateQuestion {...props} />
   );
 };
 

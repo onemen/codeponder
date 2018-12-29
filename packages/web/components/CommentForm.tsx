@@ -33,21 +33,24 @@ const Container = styled.div`
   }
 `;
 
-interface TextEditorProps {
-  startingLineNum: number;
+export interface TextEditorProps {
+  isReplay: boolean;
+  startingLineNum?: number;
   endingLineNum: number;
-  getFormResult: Function;
-  type: "reply" | "question";
+  submitForm: Function;
 }
 
-export const TextEditor = ({
-  startingLineNum,
-  endingLineNum,
-  getFormResult,
-  type,
-}: TextEditorProps) => {
+export interface TextEditorResult {
+  cancel: boolean;
+  startingLineNum: number;
+  endingLineNum: number;
+  text: string;
+}
+
+export const TextEditor = (props: TextEditorProps) => {
+  const { isReplay, startingLineNum, endingLineNum, submitForm } = props;
   const [start, startingLineNumChange] = useInputValue(
-    String(startingLineNum) || String(endingLineNum)
+    String(startingLineNum || endingLineNum)
   );
   const [end, endingLineNumChange] = useInputValue(String(endingLineNum));
   const [text, textChange] = useInputValue("");
@@ -58,7 +61,7 @@ export const TextEditor = ({
         <label>
           Starting Line:
           <input
-            disabled={type == "reply"}
+            disabled={isReplay}
             name="startingLineNum"
             type="number"
             min="1"
@@ -92,7 +95,7 @@ export const TextEditor = ({
           variant="form"
           className="btn"
           onClick={() => {
-            getFormResult({ cancel: true });
+            submitForm({ cancel: true });
           }}
         >
           Cancel
@@ -103,7 +106,7 @@ export const TextEditor = ({
           className={`primary ${text ? "" : "disabled"}`}
           onClick={() => {
             text.trim() &&
-              getFormResult({
+              submitForm({
                 startingLineNum: parseInt(start, 10),
                 endingLineNum: parseInt(end, 10),
                 text,
