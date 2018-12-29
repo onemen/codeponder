@@ -1,9 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
-
 import Highlight from "prism-react-renderer";
-import styled, { css } from "styled-components";
+import { IconButton, styled, css } from "@codeponder/ui";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -14,7 +13,6 @@ import {
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { AddComment, CommentBox, CommentProps, LineNo } from "./Comment";
-import { IconButton } from "@codeponder/ui";
 
 interface Props {
   code: string | null;

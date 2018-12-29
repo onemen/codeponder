@@ -13,5 +13,5 @@ export * from "./components/GitHubButton";
 export * from "./components/PostRow";
 export * from "./components/SidebarCard";
 export * from "./components/IconButton";
-export { ThemeProvider, GlobalStyle } from "./theme/styled-components";
+export * from "./theme/styled-components";
 export { default as theme } from "./theme";

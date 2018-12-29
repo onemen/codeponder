@@ -1,10 +1,6 @@
-import styled from "styled-components";
+import { CreateCodeReviewQuestionComponent } from "./apollo-components";
+import { MyButton, styled } from "@codeponder/ui";
 import { TextEditor } from "./CommentForm";
-import {
-  CreateCodeReviewQuestionComponent,
-  FindCodeReviewQuestionsQuery,
-} from "./apollo-components";
-import { MyButton } from "@codeponder/ui";
 
 export const getBorderColor = (type: string) => {
   const colors: { [key: string]: string } = {

@@ -1,8 +1,7 @@
 import * as React from "react";
 
 import { useInputValue } from "../utils/useInputValue";
-import styled from "styled-components";
-import { MyButton } from "@codeponder/ui";
+import { MyButton, styled } from "@codeponder/ui";
 
 const Container = styled.div`
   display: flex;
