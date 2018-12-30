@@ -90,7 +90,7 @@ export const QuestionForm = ({
 
 // // TODO: fix type defenition
 // export const QuestionForm = (
-//   ChileComponent: (props: TextEditorProps) => JSX.Element
+//   ChildComponent: (props: TextEditorProps) => JSX.Element
 // ) => ({
 //   code,
 //   path,
@@ -131,7 +131,7 @@ export const QuestionForm = ({
 //         }
 //         closeCommentEditor();
 //       };
-//       return <ChileComponent {...{ ...props, submitForm }} />;
+//       return <ChildComponent {...{ ...props, submitForm }} />;
 //     }}
 //   </CreateCodeReviewQuestionComponent>
 // );

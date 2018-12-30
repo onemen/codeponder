@@ -112,14 +112,14 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
 );
 
 // TODO: fix type defenition
-export const wrapEditor = (ChileComponent: (props: any) => JSX.Element) => (
+export const wrapEditor = (ChildComponent: (props: any) => JSX.Element) => (
   props: any
 ) => (
   <CommentBoxContainer color={getBorderColor("editor")}>
     <LineNo cursor="default" />
     <div className="comment-innder-box">
       <div>
-        <ChileComponent {...props} />
+        <ChildComponent {...props} />
       </div>
     </div>
   </CommentBoxContainer>
