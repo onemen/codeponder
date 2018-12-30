@@ -73,9 +73,9 @@ export const loadLanguage = async (lang: string) => {
     }
   }
 
-  if (lang in Prism.languages) {
-    return null;
-  }
+  // see prismjs/components/index.js
+  delete require.cache[require.resolve(`prismjs/components/prism-${lang}`)];
+  delete Prism.languages[lang];
 
   return import(`prismjs/components/prism-${lang}`);
 };
