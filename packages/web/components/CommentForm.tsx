@@ -54,6 +54,9 @@ export const TextEditor = (props: TextEditorProps) => {
   );
   const [end, endingLineNumChange] = useInputValue(String(endingLineNum));
   const [text, textChange] = useInputValue("");
+
+  const textTrimmed = (() => text.trim())();
+
   return (
     <Container>
       <div className="code-snippet">
@@ -102,14 +105,14 @@ export const TextEditor = (props: TextEditorProps) => {
         </MyButton>
         <MyButton
           variant="form"
-          {...(text ? "" : "disabled")}
+          {...(textTrimmed ? "" : "disabled")}
           className={`primary ${text ? "" : "disabled"}`}
           onClick={() => {
-            text.trim() &&
+            textTrimmed &&
               submitForm({
                 startingLineNum: parseInt(start, 10),
                 endingLineNum: parseInt(end, 10),
-                text,
+                text: textTrimmed,
               });
           }}
         >
