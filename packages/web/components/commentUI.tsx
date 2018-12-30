@@ -65,6 +65,10 @@ export const CommentBoxContainer = styled.div<{ color?: string }>`
   }
 `;
 
+export interface Comments {
+  [key: number]: CommentProps[];
+}
+
 export interface CommentProps {
   id: string;
   startingLineNum?: number; // not include in reply

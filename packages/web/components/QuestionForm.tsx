@@ -86,66 +86,18 @@ export const QuestionForm = ({
   );
 };
 
-// const WrappedTextEditor = wrapEditor(TextEditor);
-
-// // TODO: fix type defenition
-// export const QuestionForm = (
-//   ChildComponent: (props: TextEditorProps) => JSX.Element
-// ) => ({
-//   code,
-//   path,
-//   postId,
-//   programmingLanguage,
-//   closeCommentEditor,
-//   ...props
-// }: QuestionProps) => (
-//   <CreateCodeReviewQuestionComponent>
-//     {mutate => {
-//       const submitForm = async ({
-//         cancel,
-//         startingLineNum,
-//         endingLineNum,
-//         text,
-//       }: TextEditorResult) => {
-//         if (!cancel) {
-//           // save result
-//           const response = await mutate({
-//             variables: {
-//               codeReviewQuestion: {
-//                 startingLineNum,
-//                 endingLineNum,
-//                 codeSnippet: !code
-//                   ? null
-//                   : code
-//                       .split("\n")
-//                       .slice(startingLineNum - 1, endingLineNum)
-//                       .join("\n"),
-//                 text: text,
-//                 path,
-//                 postId,
-//                 programmingLanguage,
-//               },
-//             },
-//           });
-//           console.log(response);
-//         }
-//         closeCommentEditor();
-//       };
-//       return <ChildComponent {...{ ...props, submitForm }} />;
-//     }}
-//   </CreateCodeReviewQuestionComponent>
-// );
-
-// export interface QuestionProps {
-export interface QuestionProps {
-  isReplay: boolean;
-  startingLineNum?: number; // not exist before the first commnet created
-  endingLineNum: number;
-  closeCommentEditor: Function;
+export interface BaseQuestionProps {
+  closeCommentEditor: () => void;
   code?: string;
   path?: string;
   postId: string;
   programmingLanguage?: string;
+}
+
+export interface QuestionProps extends BaseQuestionProps {
+  isReplay: boolean;
+  startingLineNum?: number; // not exist before the first commnet created
+  endingLineNum: number;
 }
 
 const WrappedTextEditor = wrapEditor(TextEditor);

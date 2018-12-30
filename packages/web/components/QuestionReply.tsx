@@ -40,7 +40,7 @@ interface QuestionReplyProps {
   isReplay: boolean;
   startingLineNum?: number; // not exist before the first commnet created
   endingLineNum: number;
-  closeCommentEditor: Function;
+  closeCommentEditor: () => void;
   questionId: string;
 }
 

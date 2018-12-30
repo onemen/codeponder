@@ -3,7 +3,7 @@ import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 import Highlight from "prism-react-renderer";
 import { IconButton, styled, css } from "@codeponder/ui";
-import { CommentBox, CommentProps, LineNo } from "./commentUI";
+import { CommentProps, Comments, LineNo } from "./commentUI";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -13,8 +13,7 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import { CreateQuestion, QuestionProps } from "./QuestionForm";
-import { CreateQuestionReply } from "./QuestionReply";
+import { CommentSection, CommentData } from "./CommentSection";
 
 interface Props {
   code: string | null;
@@ -42,10 +41,6 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
     ${styles}
   `;
 };
-
-interface Comments {
-  [key: number]: CommentProps[];
-}
 
 const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
   const comment = ({
@@ -101,20 +96,16 @@ const setIsHovered = (
   }
 };
 
-interface HighlightProps {
-  code: string;
-  lang: string;
+interface HighlightProps extends CommentData {
   data: FindCodeReviewQuestionsQuery;
-  postId: string;
-  path?: string;
+  lang: string;
 }
 
 const HighlightCode: React.SFC<HighlightProps> = ({
   code,
   lang,
   data,
-  postId,
-  path,
+  ...props
 }) => {
   const hasLoadedLanguage = useRef(false);
   const codeRef = useRef<HTMLElement>(null);
@@ -176,31 +167,16 @@ const HighlightCode: React.SFC<HighlightProps> = ({
                   {line.map((token, key) => (
                     <span {...getTokenProps({ token, key })} />
                   ))}
-                  {comments[i + 1] &&
-                    comments[i + 1].map((comment, key) => (
-                      <CommentBox
-                        {...comment}
-                        key={i * 1000 + key}
-                        onReply={() => {
-                          setShowEditor(i);
-                        }}
-                      />
-                    ))}
-                  {showEditor && i == showEditor ? (
-                    <AddComment
-                      isReplay={!!comments[i + 1]}
-                      questionId={comments[i + 1] && comments[i + 1][0].id}
-                      startingLineNum={
-                        comments[i + 1] && comments[i + 1][0].startingLineNum
-                      }
-                      endingLineNum={i + 1}
-                      closeCommentEditor={() => setShowEditor(0)}
-                      code={code}
-                      programmingLanguage={lang}
-                      postId={postId}
-                      path={path}
-                    />
-                  ) : null}
+                  <CommentSection
+                    {...{
+                      commentsForFile: comments,
+                      line: i + 1,
+                      useEditor: [showEditor, setShowEditor],
+                      code,
+                      lang,
+                      ...props,
+                    }}
+                  />
                 </div>
               ))}
             </code>
@@ -208,18 +184,6 @@ const HighlightCode: React.SFC<HighlightProps> = ({
         );
       }}
     </Highlight>
-  );
-};
-
-interface AddCommentProps extends QuestionProps {
-  questionId: string;
-}
-
-const AddComment: React.SFC<AddCommentProps> = ({ ...props }) => {
-  return props.isReplay ? (
-    <CreateQuestionReply {...props} />
-  ) : (
-    <CreateQuestion {...props} />
   );
 };
 
