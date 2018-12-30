@@ -100,7 +100,12 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
           Reply
         </MyButton>
       </div>
-      <p className="comment-text">{text}</p>
+      <p className="comment-text">
+        {text}
+        {
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est consequuntur modi quas alias placeat aliquam vitae explicabo magni saepe commodi. Corporis ullam ratione fugit optio tempore provident voluptates commodi quasi!"
+        }
+      </p>
     </div>
   </CommentBoxContainer>
 );

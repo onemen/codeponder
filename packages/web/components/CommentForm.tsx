@@ -6,9 +6,10 @@ import { MyButton, styled } from "@codeponder/ui";
 const Container = styled.div`
   display: flex;
   flex-direction: column;
+  padding-left: 0.35em;
 
   & .code-snippet {
-    padding: 0.4em;
+    padding: 0.8em 0;
     border-bottom: 1px solid #999;
   }
 
@@ -21,15 +22,37 @@ const Container = styled.div`
     margin-left: 1em;
   }
 
-  & textarea {
+  & .form-control {
     border: none;
+    display: block;
+    max-height: 500px;
+    min-height: 100px;
+    padding: 8px;
+    resize: vertical;
+    width: 100%;
+    color: #24292e;
+    font-size: 16px;
+    line-height: 20px;
+    min-height: 34px;
+    outline: none;
+    vertical-align: middle;
+    word-wrap: break-word;
+
+    border: 1px solid #d1d5da;
+    border-radius: 3px;
+    border-color: #2188ff;
+    box-shadow: inset 0 1px 2px rgba(27, 31, 35, 0.075),
+      0 0 0 0.35em rgba(3, 102, 214, 0.3);
   }
 
   & .btn-box {
     border-top: 1px solid #999;
     display: flex;
     justify-content: flex-end;
-    padding: 0.4em;
+    padding: 0.8em 0.4em;
+    & button {
+      min-width: 6em;
+    }
   }
 `;
 
@@ -86,11 +109,13 @@ export const TextEditor = (props: TextEditorProps) => {
       </div>
       <textarea
         autoFocus
-        className="comment-text"
+        className="form-control comment-text"
         id="editor"
         name="editor"
         rows={5}
+        cols={60}
         placeholder="Leave a comment"
+        value={text}
         onChange={textChange}
       />
       <div className="btn-box">
