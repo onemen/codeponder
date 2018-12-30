@@ -3,7 +3,7 @@ import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 import Highlight from "prism-react-renderer";
 import { IconButton, styled, css } from "@codeponder/ui";
-import { CommentBox, CommentProps, LineNo } from "./commnetUI";
+import { CommentBox, CommentProps, LineNo } from "./commentUI";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -14,7 +14,7 @@ import {
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { CreateQuestion, QuestionProps } from "./QuestionForm";
-import { CreateQuestionReply, QuestionReply } from "./QuestionReply";
+import { CreateQuestionReply } from "./QuestionReply";
 
 interface Props {
   code: string | null;
@@ -38,28 +38,6 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
     }
      `);
   }, "");
-  return css`
-    ${styles}
-  `;
-};
-
-/*
- *Styles for the onClick line numbers
- *
- * TODO: Perhaps refactor SelectLinesMouse as a 'sub function' of SelectLines?
- * Or the two in a more general utils?
- */
-const SelectLinesMouse = (arg: number[]) => {
-  // establishing defaults
-  // The lenght of the args array can be variable
-  const startLine = arg[0] || 0;
-  const endLine = arg[1] || startLine;
-
-  const styles = `
-     & .token-line:nth-child(n+${startLine}):nth-child(-n+${endLine}) {
-      background-color: #ffddbb;
-    }
-     `;
   return css`
     ${styles}
   `;
@@ -161,6 +139,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   const Pre = styled.pre`
     & code[class*="language-"] {
       padding-left: 0;
+      overflow: hidden;
     }
 
     ${SelectLines(data)};

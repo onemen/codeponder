@@ -4,7 +4,7 @@ import { DebounceInput } from "react-debounce-input";
 
 import { CreateCodeReviewQuestionComponent } from "./apollo-components";
 import { useInputValue } from "../utils/useInputValue";
-import { wrapEditor } from "./commnetUI";
+import { wrapEditor } from "./commentUI";
 import { TextEditor, TextEditorResult } from "./CommentForm";
 
 export interface QuestionFormProps {

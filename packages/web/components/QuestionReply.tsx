@@ -1,7 +1,7 @@
 import { useInputValue } from "../utils/useInputValue";
 import { CreateQuestionReplyComponent } from "./apollo-components";
 import { TextEditorResult, TextEditor } from "./CommentForm";
-import { wrapEditor } from "./commnetUI";
+import { wrapEditor } from "./commentUI";
 
 interface Props {
   questionId: string;
