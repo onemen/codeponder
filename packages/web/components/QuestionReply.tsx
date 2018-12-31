@@ -58,12 +58,14 @@ export const CreateQuestionReply = ({
         if (!cancel) {
           // save result
           // const response = await mutate({
+          const questionReply = {
+            questionId,
+            text,
+          };
+
           const response = mutate({
             variables: {
-              questionReply: {
-                questionId,
-                text,
-              },
+              questionReply,
             },
           });
           // console.log(response);
@@ -75,7 +77,11 @@ export const CreateQuestionReply = ({
           //     text,
           //   }
           // );
-          onEditorSubmit({ response, data: { type: "reply", text } });
+
+          onEditorSubmit({
+            response,
+            data: { type: "reply", ...questionReply },
+          });
         } else {
           onEditorSubmit();
         }

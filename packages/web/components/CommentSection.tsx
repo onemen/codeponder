@@ -104,24 +104,27 @@ export const CommentSection = ({
 
 interface AddCommentProps extends CommentData {
   onEditorSubmit: (T?: any) => void;
-  showEditor: number;
+  // showEditor: number;
   comments: CommentProps[];
   line: number;
 }
 
-const AddComment: React.SFC<AddCommentProps> = ({
-  showEditor,
+export const AddComment: React.SFC<AddCommentProps> = ({
+  // showEditor,
   comments,
   line,
   lang,
   ...props
 }) => {
-  if (line != showEditor) {
-    return null;
-  }
+  // if (line != showEditor) {
+  //   return null;
+  // }
+  // console.trace("AddComment starts");
+  console.log("render editor for row", line);
+  console.log("comments for row", line, comments);
 
-  const isReplay = !!comments;
-  const question = comments ? comments[0] : undefined;
+  const isReplay = comments.length > 0;
+  const question = isReplay ? comments[0] : undefined;
 
   const commentProps = {
     isReplay,

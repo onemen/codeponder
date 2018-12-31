@@ -121,26 +121,31 @@ export const CreateQuestion = ({
       }: TextEditorResult) => {
         if (!cancel) {
           // save result
-          const response = await mutate({
-            variables: {
-              codeReviewQuestion: {
-                startingLineNum,
-                endingLineNum,
-                codeSnippet: !code
-                  ? null
-                  : code
-                      .split("\n")
-                      .slice(startingLineNum - 1, endingLineNum)
-                      .join("\n"),
-                text: text,
-                path,
-                postId,
-                programmingLanguage,
-              },
-            },
-          });
+          const codeReviewQuestion = {
+            startingLineNum,
+            endingLineNum,
+            codeSnippet: !code
+              ? null
+              : code
+                  .split("\n")
+                  .slice(startingLineNum - 1, endingLineNum)
+                  .join("\n"),
+            text: text,
+            path,
+            postId,
+            programmingLanguage,
+          };
+          // const response = await mutate({
+          //   variables: {
+          //     codeReviewQuestion,
+          //   },
+          // });
+          const response = {};
           console.log(response);
-          onEditorSubmit(response);
+          onEditorSubmit({
+            response,
+            data: { type: "question", codeReviewQuestion },
+          });
         } else {
           onEditorSubmit();
         }
