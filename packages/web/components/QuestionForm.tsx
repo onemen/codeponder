@@ -87,7 +87,7 @@ export const QuestionForm = ({
 };
 
 export interface BaseQuestionProps {
-  closeCommentEditor: () => void;
+  onEditorSubmit: (T?: any) => void;
   code?: string;
   path?: string;
   postId: string;
@@ -108,7 +108,7 @@ export const CreateQuestion = ({
   path,
   postId,
   programmingLanguage,
-  closeCommentEditor,
+  onEditorSubmit,
   ...props
 }: QuestionProps) => (
   <CreateCodeReviewQuestionComponent>
@@ -140,8 +140,10 @@ export const CreateQuestion = ({
             },
           });
           console.log(response);
+          onEditorSubmit(response);
+        } else {
+          onEditorSubmit();
         }
-        closeCommentEditor();
       };
       return <WrappedTextEditor {...{ ...props, submitForm }} />;
     }}

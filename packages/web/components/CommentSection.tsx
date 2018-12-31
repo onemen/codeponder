@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { CreateQuestion } from "./QuestionForm";
 import { Comments, CommentBox, CommentProps } from "./commentUI";
 import { CreateQuestionReply } from "./QuestionReply";
@@ -10,7 +11,7 @@ export interface CommentData {
   postId: string;
 }
 
-interface Props extends CommentData {
+export interface CommentSectionProps extends CommentData {
   commentsForFile: Comments;
   line: number;
   useEditor: [number, Dispatch<SetStateAction<number>>];
@@ -21,27 +22,79 @@ export const CommentSection = ({
   line,
   useEditor,
   ...props
-}: Props) => {
+}: CommentSectionProps) => {
+  console.log("CommentSection start", {
+    line,
+    comments: commentsForFile[line],
+  });
   const [showEditor, setShowEditor] = useEditor;
-  const comments = commentsForFile[line];
+  const [comments, setCommnets] = useState(commentsForFile[line]);
+  const [, setEditorOpen] = useState(showEditor > 0);
+
+  // const comments = commentsForFile[line];
+  useEffect(() => {
+    console.log("CommentSection useEffect", { showEditor, comments, line });
+    return () => {
+      console.log("CommentSection unmount for line", line);
+    };
+  });
+
+  // if (!comments && showEditor != line) {
+  //   console.log("CommentSection return null");
+  //   return null;
+  // }
+
+  const onReplyClicked = () => {
+    setShowEditor(line);
+  };
+
+  // const onEditorSubmit = (comment?: CommentProps) => {
+  const onEditorSubmit = async (result?: any) => {
+    setShowEditor(0);
+    if (result || !result) {
+      return;
+    }
+    if (result) {
+      // cancel || {
+      //   username: "John D.", // TODO
+      //   isOwner: false, // TODO
+      //   type: "reply",
+      //   text,
+      // }
+      // onEditorSubmit({ response, data: { type: "reply", text } });
+      console.log("before setCommnets", comments.length);
+      result.data.username = "John D.";
+      result.data.isOwner = false;
+      // setCommnets(a => {
+      //   console.log("in setCommnets", a);
+      //   a.push(result.data);
+      //   return a;
+      //   // return [...a, result.data];
+      // });
+      // setCommnets([]);
+      // comments.push(result.data);
+      setCommnets([...comments, result.data]);
+      console.log("after setCommnets", comments.length);
+
+      const response = await result.response;
+      console.log(response, comments.length);
+    }
+    setEditorOpen(false);
+    // setShowEditor(0);
+    console.log("after onEditorSubmit", result);
+  };
 
   return (
-    <div>
+    <div className="CommentSection">
       {(comments || []).map((comment, key) => (
-        <CommentBox
-          {...comment}
-          key={key}
-          onReply={() => {
-            setShowEditor(line);
-          }}
-        />
+        <CommentBox {...{ ...comment, key, onReplyClicked }} />
       )) || null}
       <AddComment
         {...{
           showEditor,
           comments,
           line,
-          closeCommentEditor: () => setShowEditor(0),
+          onEditorSubmit,
           ...props,
         }}
       />
@@ -50,7 +103,7 @@ export const CommentSection = ({
 };
 
 interface AddCommentProps extends CommentData {
-  closeCommentEditor: () => void;
+  onEditorSubmit: (T?: any) => void;
   showEditor: number;
   comments: CommentProps[];
   line: number;
@@ -72,15 +125,19 @@ const AddComment: React.SFC<AddCommentProps> = ({
 
   const commentProps = {
     isReplay,
-    startingLineNum: question!.startingLineNum,
     endingLineNum: line,
-    questionId: question!.id,
     programmingLanguage: lang,
     ...props,
   };
 
   return isReplay ? (
-    <CreateQuestionReply {...commentProps} />
+    <CreateQuestionReply
+      {...{
+        ...commentProps,
+        startingLineNum: question!.startingLineNum,
+        questionId: question!.id,
+      }}
+    />
   ) : (
     <CreateQuestion {...commentProps} />
   );

@@ -40,7 +40,7 @@ interface QuestionReplyProps {
   isReplay: boolean;
   startingLineNum?: number; // not exist before the first commnet created
   endingLineNum: number;
-  closeCommentEditor: () => void;
+  onEditorSubmit: (T?: any) => void;
   questionId: string;
 }
 
@@ -48,15 +48,17 @@ const WrappedTextEditor = wrapEditor(TextEditor);
 
 export const CreateQuestionReply = ({
   questionId,
-  closeCommentEditor,
+  onEditorSubmit,
   ...props
 }: QuestionReplyProps) => (
   <CreateQuestionReplyComponent>
     {mutate => {
-      const submitForm = async ({ cancel, text }: TextEditorResult) => {
+      // const submitForm = async ({ cancel, text }: TextEditorResult) => {
+      const submitForm = ({ cancel, text }: TextEditorResult) => {
         if (!cancel) {
           // save result
-          const response = await mutate({
+          // const response = await mutate({
+          const response = mutate({
             variables: {
               questionReply: {
                 questionId,
@@ -64,9 +66,19 @@ export const CreateQuestionReply = ({
               },
             },
           });
-          console.log(response);
+          // console.log(response);
+          // onEditorSubmit(
+          //   cancel || {
+          //     username: "John D.", // TODO
+          //     isOwner: false, // TODO
+          //     type: "reply",
+          //     text,
+          //   }
+          // );
+          onEditorSubmit({ response, data: { type: "reply", text } });
+        } else {
+          onEditorSubmit();
         }
-        closeCommentEditor();
       };
       return <WrappedTextEditor {...{ ...props, submitForm }} />;
     }}

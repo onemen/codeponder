@@ -13,7 +13,11 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import { CommentSection, CommentData } from "./CommentSection";
+import {
+  CommentSection,
+  CommentData,
+  CommentSectionProps,
+} from "./CommentSection";
 
 interface Props {
   code: string | null;
@@ -96,6 +100,16 @@ const setIsHovered = (
   }
 };
 
+const getCommentSection = (props: CommentSectionProps) => {
+  const { commentsForFile, line, useEditor } = props;
+  const comments = commentsForFile[line];
+  if (!comments && useEditor[0] != line) {
+    console.log("CommentSection return null");
+    return null;
+  }
+  return <CommentSection {...props} />;
+};
+
 interface HighlightProps extends CommentData {
   data: FindCodeReviewQuestionsQuery;
   lang: string;
@@ -113,6 +127,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   const [showEditor, setShowEditor] = useState(0);
 
   useEffect(() => {
+    console.log("HighlightCode useEffect");
     if (!hasLoadedLanguage.current) {
       loadLanguage(lang)
         .then(() => {
@@ -122,6 +137,10 @@ const HighlightCode: React.SFC<HighlightProps> = ({
         .catch(() => {});
     }
   }, []);
+
+  useEffect(() => {
+    console.log("HighlightCode useEffect", { showEditor, loading });
+  });
 
   if (loading) {
     return null;
@@ -136,10 +155,22 @@ const HighlightCode: React.SFC<HighlightProps> = ({
     ${SelectLines(data)};
   `;
 
+  // {/* {({ className, style, tokens, getLineProps, getTokenProps }) => { */ }
   return (
     <Highlight Prism={Prism} code={code} language={lang}>
-      {({ className, style, tokens, getLineProps, getTokenProps }) => {
+      {HighlightProps => {
         const comments = getCommentsForFile(data);
+        console.log("Highlight component renders");
+        if (data) {
+          return <HighlightPre {...HighlightProps} comments={comments} />;
+        }
+        const {
+          className,
+          style,
+          tokens,
+          getLineProps,
+          getTokenProps,
+        } = HighlightProps;
         return (
           <Pre className={className} style={style}>
             <code
@@ -161,13 +192,13 @@ const HighlightCode: React.SFC<HighlightProps> = ({
                     icon="plus"
                     className="hidden"
                     onClick={() => {
-                      setShowEditor(i);
+                      setShowEditor(i + 1);
                     }}
                   />
                   {line.map((token, key) => (
                     <span {...getTokenProps({ token, key })} />
                   ))}
-                  <CommentSection
+                  {/*                   <CommentSection
                     {...{
                       commentsForFile: comments,
                       line: i + 1,
@@ -176,7 +207,15 @@ const HighlightCode: React.SFC<HighlightProps> = ({
                       lang,
                       ...props,
                     }}
-                  />
+                  /> */
+                  getCommentSection({
+                    commentsForFile: comments,
+                    line: i + 1,
+                    useEditor: [showEditor, setShowEditor],
+                    code,
+                    lang,
+                    ...props,
+                  })}
                 </div>
               ))}
             </code>
@@ -185,6 +224,11 @@ const HighlightCode: React.SFC<HighlightProps> = ({
       }}
     </Highlight>
   );
+};
+
+const HighlightPre = (props: any) => {
+  console.log("HighlightPre renders", props);
+  return <h1>Code Go Here.....</h1>;
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
