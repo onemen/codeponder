@@ -177,6 +177,23 @@ const RenderRow: React.SFC<RenderRowProps> = ({
     };
   }, []);
 
+  /*
+option 1
+  move commentsForRow.map to
+  AddComment, rename the component CommentSection
+
+  option 2
+  creat child component in AddComment and store new comments in
+  AddComment, with this approach we dont need to render the row
+  only AddComment will render !!!
+
+  option 3
+  don't change curret code
+
+  the only reason to do 1 or 2 if it will be faster user exp.
+
+  */
+
   return (
     <div {...getLineProps({ line, key: rowNum })}>
       <LineNo>{rowNum}</LineNo>
