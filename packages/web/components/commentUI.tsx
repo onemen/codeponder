@@ -81,7 +81,7 @@ export interface CommentProps {
 }
 
 interface CommentFunctionProps extends CommentProps {
-  onReplyClicked: (props: any) => any;
+  onOpenEditor: (props: any) => any;
 }
 
 export const CommentBox: React.SFC<CommentFunctionProps> = ({
@@ -89,7 +89,7 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
   text,
   isOwner,
   type,
-  onReplyClicked,
+  onOpenEditor,
 }) => (
   <CommentBoxContainer color={getBorderColor(type)}>
     <LineNo cursor="default" />
@@ -100,7 +100,7 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
         <MyButton
           variant="form"
           className="btn-reply primary"
-          onClick={onReplyClicked}
+          onClick={onOpenEditor}
         >
           Reply
         </MyButton>

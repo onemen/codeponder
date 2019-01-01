@@ -120,23 +120,32 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments[rowNum] || []);
 
-  const onReplyClicked = () => {
+  const onOpenEditor = () => {
     setShowEditor(true);
   };
 
   let submitting = false;
   const onEditorSubmit = async (result: any) => {
     if (result) {
-      result.data.username = "John D.";
+      // TODO: update with user data
       result.data.isOwner = false;
       try {
         const response = await result.response;
         console.log(response);
+
+        const data =
+          result.data.type == "question"
+            ? response.data.createCodeReviewQuestion.codeReviewQuestion
+            : response.data.createQuestionReply.questionReply;
+
+        result.data.username = data.creator.username;
+        result.data.id = data.id;
+        result.data.__typename = data.__typename;
+        submitting = true;
+        setCommentsForRow([...commentsForRow, result.data]);
       } catch (ex) {
-        console.log("Error when saving form", result.data.typem, ex);
+        console.log("Error when saving form", result.data.type, ex);
       }
-      submitting = true;
-      setCommentsForRow([...commentsForRow, result.data]);
     }
     setShowEditor(false);
   };
@@ -170,15 +179,13 @@ const RenderRow: React.SFC<RenderRowProps> = ({
         variant="primary"
         icon="plus"
         className="hidden"
-        onClick={() => {
-          setShowEditor(true);
-        }}
+        onClick={onOpenEditor}
       />
       {line.map((token, key) => (
         <span {...getTokenProps({ token, key })} />
       ))}
       {commentsForRow.map((comment, key) => {
-        return <CommentBox {...{ ...comment, key, onReplyClicked }} />;
+        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
       }) || null}
       {showEditor && (
         <AddComment
