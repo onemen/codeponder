@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 import Highlight, { Token, RenderProps } from "prism-react-renderer";
-import { IconButton, styled, css } from "@codeponder/ui";
+import { IconButton, styled, css, SimpleInterpolation } from "@codeponder/ui";
 import { CommentProps, Comments, LineNo, CommentBox } from "./commentUI";
 
 import {
@@ -13,18 +13,26 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import {
-  CommentSection,
-  CommentData,
-  CommentSectionProps,
-  AddComment,
-} from "./CommentSection";
+import { CommentData, AddComment } from "./CommentSection";
+import { getScrollY } from "../utils/domScrollUtils";
 
 interface Props {
   code: string | null;
   path?: string;
   postId: string;
 }
+
+interface HighlightPreProps extends RenderProps, CommentData {
+  data: FindCodeReviewQuestionsQuery;
+}
+interface RenderRowProps extends CommentData {
+  line: Token[];
+  useComments: [Comments, React.Dispatch<React.SetStateAction<Comments>>];
+  getLineProps: RenderProps["getLineProps"];
+  getTokenProps: RenderProps["getTokenProps"];
+  rowNum: number;
+}
+
 /*
  * *Styles for the line numbers coming from the server
  *
@@ -78,20 +86,6 @@ const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
   }, {});
 };
 
-const insertCommentsToCode = (
-  tokens: Token[][],
-  data: FindCodeReviewQuestionsQuery
-): (Token[] | CommentProps)[] => {
-  const comments = getCommentsForFile(data);
-  return tokens.reduce((lines: (Token[] | CommentProps)[], line, i) => {
-    lines.push(line);
-    if (comments[i + 1]) {
-      lines.push(...comments[i + 1]);
-    }
-    return lines;
-  }, []);
-};
-
 const setIsHovered = (
   { current }: React.RefObject<HTMLElement>,
   { target: elm }: any,
@@ -115,172 +109,6 @@ const setIsHovered = (
   }
 };
 
-const getCommentSection = (props: CommentSectionProps) => {
-  const { commentsForFile, line, useEditor } = props;
-  const comments = commentsForFile[line];
-  if (!comments && useEditor[0] != line) {
-    //xxx  console.log("CommentSection return null");
-    return null;
-  }
-  return <CommentSection {...props} />;
-};
-
-interface HighlightProps extends CommentData {
-  data: FindCodeReviewQuestionsQuery;
-  lang: string;
-}
-
-const HighlightCode: React.SFC<HighlightProps> = ({
-  code,
-  lang,
-  data,
-  ...props
-}) => {
-  const hasLoadedLanguage = useRef(false);
-  const codeRef = useRef<HTMLElement>(null);
-  const [loading, setloading] = useState(true);
-  const [showEditor, setShowEditor] = useState(0);
-
-  useEffect(() => {
-    //xxx  console.log("HighlightCode useEffect");
-    if (!hasLoadedLanguage.current) {
-      loadLanguage(lang)
-        .then(() => {
-          setloading(false);
-          hasLoadedLanguage.current = true;
-        })
-        .catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
-    //xxx  console.log("HighlightCode useEffect", { showEditor, loading });
-  });
-
-  if (loading) {
-    return null;
-  }
-
-  const Pre = styled.pre`
-    & code[class*="language-"] {
-      padding-left: 0;
-      overflow: hidden;
-    }
-
-    ${SelectLines(data)};
-  `;
-
-  // {/* {({ className, style, tokens, getLineProps, getTokenProps }) => { */ }
-  return (
-    <Highlight Prism={Prism} code={code} language={lang}>
-      {highlightProps => {
-        //xxx  console.log("Highlight component renders");
-        if (data) {
-          return (
-            <HighlightPre
-              {...{ ...highlightProps, data, code, lang, ...props }}
-            />
-          );
-        }
-        const comments = getCommentsForFile(data);
-        const {
-          className,
-          style,
-          tokens,
-          getLineProps,
-          getTokenProps,
-        } = highlightProps;
-        return (
-          <Pre className={className} style={style}>
-            <code
-              className={`code-content ${className}`}
-              ref={codeRef}
-              onMouseOut={(e: any): void => {
-                setIsHovered(codeRef, e, false);
-              }}
-              onMouseOver={(e: any): void => {
-                setIsHovered(codeRef, e, true);
-              }}
-            >
-              {tokens.map((line, i) => (
-                <div {...getLineProps({ line, key: i })}>
-                  <LineNo>{i + 1}</LineNo>
-                  <IconButton
-                    style={{ margin: "-2px 0px -2px -20px" }}
-                    variant="primary"
-                    icon="plus"
-                    className="hidden"
-                    onClick={() => {
-                      setShowEditor(i + 1);
-                    }}
-                  />
-                  {line.map((token, key) => (
-                    <span {...getTokenProps({ token, key })} />
-                  ))}
-                  {/*                   <CommentSection
-                    {...{
-                      commentsForFile: comments,
-                      line: i + 1,
-                      useEditor: [showEditor, setShowEditor],
-                      code,
-                      lang,
-                      ...props,
-                    }}
-                  /> */
-                  getCommentSection({
-                    commentsForFile: comments,
-                    line: i + 1,
-                    useEditor: [showEditor, setShowEditor],
-                    code,
-                    lang,
-                    ...props,
-                  })}
-                </div>
-              ))}
-            </code>
-          </Pre>
-        );
-      }}
-    </Highlight>
-  );
-};
-
-interface X {
-  className: string;
-  data: FindCodeReviewQuestionsQuery;
-  children: Element;
-}
-
-const StyledPre = (props: X) => {
-  const pre = ({ className, children }: X) => (
-    <pre className={className}>{children}</pre>
-  );
-  const Pre = pre({ ...props });
-  return styled(pre)`
-    & code[class*="language-"] {
-      padding-left: 0;
-      overflow: hidden;
-    }
-
-    ${p => {
-      //xxx  console.log("in styled component pre");
-      return SelectLines(props.data);
-    }};
-  `;
-};
-
-interface HighlightPreProps extends RenderProps, CommentData {
-  data: FindCodeReviewQuestionsQuery;
-}
-
-interface RenderRowProps extends CommentData {
-  line: Token[];
-  useComments: [Comments, React.Dispatch<React.SetStateAction<Comments>>];
-  getLineProps: RenderProps["getLineProps"];
-  getTokenProps: RenderProps["getTokenProps"];
-  rowNum: number;
-}
-
 const RenderRow: React.SFC<RenderRowProps> = ({
   line,
   getLineProps,
@@ -290,54 +118,51 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   ...props
 }) => {
   const [showEditor, setShowEditor] = useState(false);
-  // const codeRef = useRef<HTMLDivElement>(null);
   const [comments, setCommnets] = useComments;
 
   const commentsForRow = comments[rowNum] || [];
-  //xxx  console.log("render line", rowNum);
-  // console.log("commentsForRow", rowNum, commentsForRow);
 
   const onReplyClicked = () => {
-    //xxx  console.log("showEditor", rowNum);
-    //xxx  console.log("comments for row", commentsForRow);
-    //xxx  console.log("tokens for row", line);
     setShowEditor(true);
   };
 
+  let submitting = false;
   const onEditorSubmit = async (result: any) => {
     if (result) {
       result.data.username = "John D.";
       result.data.isOwner = false;
-      await result.response;
+      try {
+        const response = await result.response;
+        console.log(response);
+      } catch (ex) {
+        console.log("Error when saving form", result.data.typem, ex);
+      }
+      submitting = true;
       setCommnets({ ...comments, [rowNum]: [...commentsForRow, result.data] });
-
-      // const response = await result.response;
-      console.log(result.data);
-      // console.log(response);
-
-      //xxx  console.log("mutate response", response);
-      //xxx  console.log("comments for row", commentsForRow, result.data);
-      // setCommnets({ ...comments, [rowNum]: [...commentsForRow, result.data] });
-      //   setShowEditor(false);
-      // } else {
-      //   // setTimeout(() => setShowEditor(false), 2000);
-      //   setShowEditor(false);
-      // }
     }
     setShowEditor(false);
-    // setShowEditor(false);
-    //xxx  console.log("result from comment form", result);
   };
 
-  // useEffect(
-  //   () => {
-  //     if (showEditor) {
-  //       console.log("on useEffect showEditor", showEditor);
-  //       setShowEditor(false);
-  //     }
-  //   },
-  //   [comments]
-  // );
+  useEffect(
+    () => {
+      submitting = false;
+    },
+    [showEditor]
+  );
+
+  useEffect(() => {
+    // prevent page scroll after submiting comment form
+    const stopScroll = (event: UIEvent): void => {
+      if (submitting) {
+        event.preventDefault();
+        window.scrollTo(0, getScrollY());
+      }
+    };
+    window.addEventListener("scroll", stopScroll);
+    return () => {
+      window.removeEventListener("scroll", stopScroll);
+    };
+  }, []);
 
   return (
     <div {...getLineProps({ line, key: rowNum })}>
@@ -355,7 +180,6 @@ const RenderRow: React.SFC<RenderRowProps> = ({
         <span {...getTokenProps({ token, key })} />
       ))}
       {commentsForRow.map((comment, key) => {
-        //xxx  console.log("render commentbox for line", rowNum, key);
         return <CommentBox {...{ ...comment, key, onReplyClicked }} />;
       }) || null}
       {showEditor && (
@@ -372,46 +196,23 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   );
 };
 
-// const HighlightPre = ({ ...props }: HighlightPreProps) => {
-const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
+const Pre = styled.pre`
+  & code[class*="language-"] {
+    padding-left: 0;
+    overflow: hidden;
+  }
+
+  ${(p: { selectedLines: SimpleInterpolation }) => p.selectedLines}
+`;
+
+const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
   const { className, data, tokens } = props;
 
   const codeRef = useRef<HTMLElement>(null);
   const useComments = useState(getCommentsForFile(data));
 
-  //xxx  console.log("comments for file", useComments[0]);
-
-  //xxx  console.log("HighlightPre renders", props);
-
-  /*   const rows = insertCommentsToCode(tokens, data);
-
   return (
-    <pre className={className}>
-      <code className={`code-content ${className}`}>
-        {rows.map((line, i) => {
-          return Array.isArray(line) ? (
-            <RenderRow line={line} index={i} {...props} />
-          ) : (
-            <CommentBox
-              {...line}
-              onReplyClicked={() => {
-              //xxx  console.log("opne editor for line ", i + 1);
-              }}
-              key={10 * rows.length + i}
-            />
-          );
-        })}
-      </code>
-    </pre>
-  ); */
-
-  useEffect(() => {
-    //xxx  console.log("on useEffect HighlightPre");
-  });
-
-  // <RenderRow line={line} index={i} key={i} {...props} />
-  return (
-    <pre className={className}>
+    <Pre className={className} selectedLines={SelectLines(data)}>
       <code
         className={`code-content ${className}`}
         ref={codeRef}
@@ -430,12 +231,31 @@ const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
           />
         ))}
       </code>
-    </pre>
+    </Pre>
   );
+};
+
+const useLoadLanguage = (lang: string) => {
+  const hasLoadedLanguage = useRef(false);
+  const [loadingLang, setloadingLang] = useState(true);
+
+  useEffect(() => {
+    if (!hasLoadedLanguage.current) {
+      loadLanguage(lang)
+        .then(() => {
+          setloadingLang(false);
+          hasLoadedLanguage.current = true;
+        })
+        .catch(() => {});
+    }
+  }, []);
+  return loadingLang;
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
   const lang = path ? filenameToLang(path) : "";
+  const loadingLang = useLoadLanguage(lang);
+
   const variables = {
     path,
     postId,
@@ -444,20 +264,22 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
   return (
     <FindCodeReviewQuestionsComponent variables={variables}>
       {({ data, loading }) => {
-        if (!data || loading) {
+        if (!data || loading || loadingLang) {
           return null;
         }
 
-        //xxx  console.log("FindCodeReviewQuestionsComponent");
-
         return (
-          <HighlightCode
-            code={code || ""}
-            lang={lang}
-            data={data}
-            postId={postId}
-            path={path}
-          />
+          <Highlight Prism={Prism} code={code || ""} language={lang}>
+            {props => (
+              <HighlightFuncComponent
+                {...props}
+                {...variables}
+                data={data}
+                code={code || ""}
+                lang={lang}
+              />
+            )}
+          </Highlight>
         );
       }}
     </FindCodeReviewQuestionsComponent>

@@ -9,7 +9,6 @@ interface Props {
 
 export const QuestionReply: React.SFC<Props> = ({ questionId }) => {
   const [value, onChange] = useInputValue("");
-  //xxx  console.log("questionId", questionId);
 
   return (
     <CreateQuestionReplyComponent>
@@ -53,11 +52,9 @@ export const CreateQuestionReply = ({
 }: QuestionReplyProps) => (
   <CreateQuestionReplyComponent>
     {mutate => {
-      // const submitForm = async ({ cancel, text }: TextEditorResult) => {
       const submitForm = ({ cancel, text }: TextEditorResult) => {
         if (!cancel) {
           // save result
-          // const response = await mutate({
           const questionReply = {
             questionId,
             text,
@@ -68,15 +65,6 @@ export const CreateQuestionReply = ({
               questionReply,
             },
           });
-          // console.log(response);
-          // onEditorSubmit(
-          //   cancel || {
-          //     username: "John D.", // TODO
-          //     isOwner: false, // TODO
-          //     type: "reply",
-          //     text,
-          //   }
-          // );
 
           onEditorSubmit({
             response,

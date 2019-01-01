@@ -11,10 +11,10 @@ export const getBorderColor = (type: string) => {
   return colors[type];
 };
 
-export const LineNo = styled.a<{ cursor?: string }>`
+export const LineNo = styled.a`
   border-right: 1px solid #999;
   color: #999;
-  cursor: ${p => p.cursor || "pointer"};
+  cursor: ${(p: { cursor?: string }) => p.cursor || "pointer"};
   display: inline-block;
   letter-spacing: -1px;
   margin-right: 0.65em;
@@ -24,7 +24,7 @@ export const LineNo = styled.a<{ cursor?: string }>`
   width: 3em;
 `;
 
-export const CommentBoxContainer = styled.div<{ color?: string }>`
+export const CommentBoxContainer = styled.div`
   background-color: #fff;
   display: grid;
   grid-template-columns: 3em auto;
@@ -32,7 +32,8 @@ export const CommentBoxContainer = styled.div<{ color?: string }>`
 
   & .comment-innder-box {
     border: 1px solid #999;
-    border-left: 10px solid ${p => p.color || getBorderColor("question")};
+    border-left: 10px solid
+      ${(p: { color?: string }) => p.color || getBorderColor("question")};
     margin: 4px 0;
   }
 
@@ -62,34 +63,6 @@ export const CommentBoxContainer = styled.div<{ color?: string }>`
 
   & .btn-reply {
     margin-left: auto;
-  }
-
-  /*   border-style: solid;
-  border-width: 1px;
-  display: block; */
-  /*   width: 100px;
-  height: 100px; */
-  /* height: 200px; */
-  /* max-height: 1000px; */
-  opacity: 1;
-  /* background-color: #0000ff; */
-  /* -webkit-transition: width 2s, height 2s, background-color 2s, */
-  /* -webkit-transform 2s; */
-  /* transition: opacity 1s, width 2s, height 2s, background-color 2s, transform 2s; */
-  /* transition: opacity 2s, width 2s, max-height 2s, height 2s, maxHeight 2s; */
-  transform: scaleY(1);
-  transition: opacity 1s, transform 1s;
-
-  &.animate {
-    /* background-color: #ffcccc; */
-    /* width: 0; */
-    /*     height: 0;
-    // max-height: 0; */
-    transform: scaleY(0);
-    /* visibility: hidden; */
-    opacity: 0;
-    /* -webkit-transform: rotate(180deg);
-    // transform: rotate(180deg); */
   }
 `;
 

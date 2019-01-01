@@ -140,8 +140,6 @@ export const CreateQuestion = ({
               codeReviewQuestion,
             },
           });
-          // const response = {};
-          //xxx  console.log(response);
           onEditorSubmit({
             response,
             data: { type: "question", ...codeReviewQuestion },

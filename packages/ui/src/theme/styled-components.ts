@@ -1,6 +1,9 @@
 // styled-components.ts
 import * as styledComponents from "styled-components";
-import { ThemedStyledComponentsModule } from "styled-components";
+import {
+  ThemedStyledComponentsModule,
+  SimpleInterpolation,
+} from "styled-components";
 
 import { ITheme } from ".";
 
@@ -12,7 +15,14 @@ const {
   ThemeProvider,
 } = styledComponents as ThemedStyledComponentsModule<ITheme>;
 
-export { css, createGlobalStyle, keyframes, ThemeProvider, styled };
+export {
+  css,
+  createGlobalStyle,
+  keyframes,
+  SimpleInterpolation,
+  ThemeProvider,
+  styled,
+};
 export default styled;
 export const GlobalStyle = createGlobalStyle`
 body {
