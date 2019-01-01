@@ -17,6 +17,7 @@ import { CommentData, AddComment } from "./CommentSection";
 import { getScrollY } from "../utils/domScrollUtils";
 
 interface Props {
+  owner: string;
   code: string | null;
   path?: string;
   postId: string;
@@ -24,10 +25,12 @@ interface Props {
 
 interface HighlightPreProps extends RenderProps, CommentData {
   data: FindCodeReviewQuestionsQuery;
+  owner: string;
 }
 interface RenderRowProps extends CommentData {
+  owner: string;
   line: Token[];
-  comments: Comments;
+  comments: CommentProps[];
   getLineProps: RenderProps["getLineProps"];
   getTokenProps: RenderProps["getTokenProps"];
   rowNum: number;
@@ -55,7 +58,10 @@ const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
   `;
 };
 
-const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
+const getCommentsForFile = (
+  prop: FindCodeReviewQuestionsQuery,
+  owner: string
+): Comments => {
   const comment = ({
     id,
     text,
@@ -67,7 +73,7 @@ const getCommentsForFile = (prop: FindCodeReviewQuestionsQuery): Comments => {
     id,
     text,
     username: creator.username,
-    isOwner: true, // Todo: need to get real value
+    isOwner: creator.username == owner,
     type: (__typename || "").includes("Reply") ? "reply" : "question",
   });
 
@@ -115,10 +121,11 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   getTokenProps,
   rowNum,
   comments,
+  owner,
   ...props
 }) => {
   const [showEditor, setShowEditor] = useState(false);
-  const [commentsForRow, setCommentsForRow] = useState(comments[rowNum] || []);
+  const [commentsForRow, setCommentsForRow] = useState(comments || []);
 
   const onOpenEditor = () => {
     setShowEditor(true);
@@ -127,8 +134,6 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   let submitting = false;
   const onEditorSubmit = async (result: any) => {
     if (result) {
-      // TODO: update with user data
-      result.data.isOwner = false;
       try {
         const response = await result.response;
         console.log(response);
@@ -139,6 +144,7 @@ const RenderRow: React.SFC<RenderRowProps> = ({
             : response.data.createQuestionReply.questionReply;
 
         result.data.username = data.creator.username;
+        result.data.isOwner = data.creator.username = owner;
         result.data.id = data.id;
         result.data.__typename = data.__typename;
         submitting = true;
@@ -211,10 +217,10 @@ const Pre = styled.pre`
 `;
 
 const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
-  const { className, data, tokens } = props;
+  const { className, data, tokens, owner } = props;
 
   const codeRef = useRef<HTMLElement>(null);
-  const comments = getCommentsForFile(data);
+  const comments = getCommentsForFile(data, owner);
 
   return (
     <Pre className={className} selectedLines={SelectLines(data)}>
@@ -230,7 +236,7 @@ const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
       >
         {tokens.map((line, i) => (
           <RenderRow
-            {...{ ...props, line, comments }}
+            {...{ ...props, line, comments: comments[i + 1] }}
             rowNum={i + 1}
             key={i + 1}
           />
@@ -257,7 +263,7 @@ const useLoadLanguage = (lang: string) => {
   return loadingLang;
 };
 
-export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
+export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
   const lang = path ? filenameToLang(path) : "";
   const loadingLang = useLoadLanguage(lang);
 
@@ -279,6 +285,7 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
               <HighlightFuncComponent
                 {...props}
                 {...variables}
+                owner={owner}
                 data={data}
                 code={code || ""}
                 lang={lang}
