@@ -27,7 +27,7 @@ interface HighlightPreProps extends RenderProps, CommentData {
 }
 interface RenderRowProps extends CommentData {
   line: Token[];
-  useComments: [Comments, React.Dispatch<React.SetStateAction<Comments>>];
+  comments: Comments;
   getLineProps: RenderProps["getLineProps"];
   getTokenProps: RenderProps["getTokenProps"];
   rowNum: number;
@@ -114,13 +114,11 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   getLineProps,
   getTokenProps,
   rowNum,
-  useComments,
+  comments,
   ...props
 }) => {
   const [showEditor, setShowEditor] = useState(false);
-  const [comments, setCommnets] = useComments;
-
-  const commentsForRow = comments[rowNum] || [];
+  const [commentsForRow, setCommentsForRow] = useState(comments[rowNum] || []);
 
   const onReplyClicked = () => {
     setShowEditor(true);
@@ -138,7 +136,7 @@ const RenderRow: React.SFC<RenderRowProps> = ({
         console.log("Error when saving form", result.data.typem, ex);
       }
       submitting = true;
-      setCommnets({ ...comments, [rowNum]: [...commentsForRow, result.data] });
+      setCommentsForRow([...commentsForRow, result.data]);
     }
     setShowEditor(false);
   };
@@ -209,7 +207,7 @@ const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
   const { className, data, tokens } = props;
 
   const codeRef = useRef<HTMLElement>(null);
-  const useComments = useState(getCommentsForFile(data));
+  const comments = getCommentsForFile(data);
 
   return (
     <Pre className={className} selectedLines={SelectLines(data)}>
@@ -225,7 +223,7 @@ const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
       >
         {tokens.map((line, i) => (
           <RenderRow
-            {...{ ...props, line, useComments }}
+            {...{ ...props, line, comments }}
             rowNum={i + 1}
             key={i + 1}
           />
