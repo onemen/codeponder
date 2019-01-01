@@ -63,6 +63,34 @@ export const CommentBoxContainer = styled.div<{ color?: string }>`
   & .btn-reply {
     margin-left: auto;
   }
+
+  /*   border-style: solid;
+  border-width: 1px;
+  display: block; */
+  /*   width: 100px;
+  height: 100px; */
+  /* height: 200px; */
+  /* max-height: 1000px; */
+  opacity: 1;
+  /* background-color: #0000ff; */
+  /* -webkit-transition: width 2s, height 2s, background-color 2s, */
+  /* -webkit-transform 2s; */
+  /* transition: opacity 1s, width 2s, height 2s, background-color 2s, transform 2s; */
+  /* transition: opacity 2s, width 2s, max-height 2s, height 2s, maxHeight 2s; */
+  transform: scaleY(1);
+  transition: opacity 1s, transform 1s;
+
+  &.animate {
+    /* background-color: #ffcccc; */
+    /* width: 0; */
+    /*     height: 0;
+    // max-height: 0; */
+    transform: scaleY(0);
+    /* visibility: hidden; */
+    opacity: 0;
+    /* -webkit-transform: rotate(180deg);
+    // transform: rotate(180deg); */
+  }
 `;
 
 export interface Comments {

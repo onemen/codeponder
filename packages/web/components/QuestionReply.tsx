@@ -9,7 +9,7 @@ interface Props {
 
 export const QuestionReply: React.SFC<Props> = ({ questionId }) => {
   const [value, onChange] = useInputValue("");
-  console.log("questionId", questionId);
+  //xxx  console.log("questionId", questionId);
 
   return (
     <CreateQuestionReplyComponent>

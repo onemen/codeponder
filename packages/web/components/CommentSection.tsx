@@ -23,24 +23,26 @@ export const CommentSection = ({
   useEditor,
   ...props
 }: CommentSectionProps) => {
-  console.log("CommentSection start", {
+  /*
+//xxx  console.log("CommentSection start", {
     line,
     comments: commentsForFile[line],
   });
+  */
   const [showEditor, setShowEditor] = useEditor;
   const [comments, setCommnets] = useState(commentsForFile[line]);
   const [, setEditorOpen] = useState(showEditor > 0);
 
   // const comments = commentsForFile[line];
   useEffect(() => {
-    console.log("CommentSection useEffect", { showEditor, comments, line });
+    //xxx  console.log("CommentSection useEffect", { showEditor, comments, line });
     return () => {
-      console.log("CommentSection unmount for line", line);
+      //xxx  console.log("CommentSection unmount for line", line);
     };
   });
 
   // if (!comments && showEditor != line) {
-  //   console.log("CommentSection return null");
+  // //xxx  console.log("CommentSection return null");
   //   return null;
   // }
 
@@ -62,11 +64,11 @@ export const CommentSection = ({
       //   text,
       // }
       // onEditorSubmit({ response, data: { type: "reply", text } });
-      console.log("before setCommnets", comments.length);
+      //xxx  console.log("before setCommnets", comments.length);
       result.data.username = "John D.";
       result.data.isOwner = false;
       // setCommnets(a => {
-      //   console.log("in setCommnets", a);
+      // //xxx  console.log("in setCommnets", a);
       //   a.push(result.data);
       //   return a;
       //   // return [...a, result.data];
@@ -74,14 +76,14 @@ export const CommentSection = ({
       // setCommnets([]);
       // comments.push(result.data);
       setCommnets([...comments, result.data]);
-      console.log("after setCommnets", comments.length);
+      //xxx  console.log("after setCommnets", comments.length);
 
       const response = await result.response;
       console.log(response, comments.length);
     }
     setEditorOpen(false);
     // setShowEditor(0);
-    console.log("after onEditorSubmit", result);
+    //xxx  console.log("after onEditorSubmit", result);
   };
 
   return (
@@ -120,8 +122,8 @@ export const AddComment: React.SFC<AddCommentProps> = ({
   //   return null;
   // }
   // console.trace("AddComment starts");
-  console.log("render editor for row", line);
-  console.log("comments for row", line, comments);
+  //xxx  console.log("render editor for row", line);
+  //xxx  console.log("comments for row", line, comments);
 
   const isReplay = comments.length > 0;
   const question = isReplay ? comments[0] : undefined;

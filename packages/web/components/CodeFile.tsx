@@ -119,7 +119,7 @@ const getCommentSection = (props: CommentSectionProps) => {
   const { commentsForFile, line, useEditor } = props;
   const comments = commentsForFile[line];
   if (!comments && useEditor[0] != line) {
-    console.log("CommentSection return null");
+    //xxx  console.log("CommentSection return null");
     return null;
   }
   return <CommentSection {...props} />;
@@ -142,7 +142,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   const [showEditor, setShowEditor] = useState(0);
 
   useEffect(() => {
-    console.log("HighlightCode useEffect");
+    //xxx  console.log("HighlightCode useEffect");
     if (!hasLoadedLanguage.current) {
       loadLanguage(lang)
         .then(() => {
@@ -154,7 +154,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log("HighlightCode useEffect", { showEditor, loading });
+    //xxx  console.log("HighlightCode useEffect", { showEditor, loading });
   });
 
   if (loading) {
@@ -174,7 +174,7 @@ const HighlightCode: React.SFC<HighlightProps> = ({
   return (
     <Highlight Prism={Prism} code={code} language={lang}>
       {highlightProps => {
-        console.log("Highlight component renders");
+        //xxx  console.log("Highlight component renders");
         if (data) {
           return (
             <HighlightPre
@@ -263,7 +263,7 @@ const StyledPre = (props: X) => {
     }
 
     ${p => {
-      console.log("in styled component pre");
+      //xxx  console.log("in styled component pre");
       return SelectLines(props.data);
     }};
   `;
@@ -273,16 +273,15 @@ interface HighlightPreProps extends RenderProps, CommentData {
   data: FindCodeReviewQuestionsQuery;
 }
 
-interface HighlightRowProps extends CommentData {
+interface RenderRowProps extends CommentData {
   line: Token[];
   useComments: [Comments, React.Dispatch<React.SetStateAction<Comments>>];
-  commentsForRow: CommentProps[];
   getLineProps: RenderProps["getLineProps"];
   getTokenProps: RenderProps["getTokenProps"];
   rowNum: number;
 }
 
-const HighlightRow: React.SFC<HighlightRowProps> = ({
+const RenderRow: React.SFC<RenderRowProps> = ({
   line,
   getLineProps,
   getTokenProps,
@@ -291,16 +290,17 @@ const HighlightRow: React.SFC<HighlightRowProps> = ({
   ...props
 }) => {
   const [showEditor, setShowEditor] = useState(false);
+  // const codeRef = useRef<HTMLDivElement>(null);
   const [comments, setCommnets] = useComments;
 
   const commentsForRow = comments[rowNum] || [];
-  console.log("render line", rowNum);
+  //xxx  console.log("render line", rowNum);
   // console.log("commentsForRow", rowNum, commentsForRow);
 
   const onReplyClicked = () => {
-    console.log("showEditor", rowNum);
-    console.log("comments for row", commentsForRow);
-    console.log("tokens for row", line);
+    //xxx  console.log("showEditor", rowNum);
+    //xxx  console.log("comments for row", commentsForRow);
+    //xxx  console.log("tokens for row", line);
     setShowEditor(true);
   };
 
@@ -308,21 +308,36 @@ const HighlightRow: React.SFC<HighlightRowProps> = ({
     if (result) {
       result.data.username = "John D.";
       result.data.isOwner = false;
-      const response = await result.response;
-      console.log("mutate response", response);
-      console.log("comments for row", commentsForRow, result.data);
+      await result.response;
       setCommnets({ ...comments, [rowNum]: [...commentsForRow, result.data] });
+
+      // const response = await result.response;
+      console.log(result.data);
+      // console.log(response);
+
+      //xxx  console.log("mutate response", response);
+      //xxx  console.log("comments for row", commentsForRow, result.data);
+      // setCommnets({ ...comments, [rowNum]: [...commentsForRow, result.data] });
+      //   setShowEditor(false);
+      // } else {
+      //   // setTimeout(() => setShowEditor(false), 2000);
+      //   setShowEditor(false);
+      // }
     }
     setShowEditor(false);
-    console.log("result from comment form", result);
+    // setShowEditor(false);
+    //xxx  console.log("result from comment form", result);
   };
 
-  useEffect(
-    () => {
-      console.log("on useEffect showEditor", showEditor);
-    },
-    [showEditor]
-  );
+  // useEffect(
+  //   () => {
+  //     if (showEditor) {
+  //       console.log("on useEffect showEditor", showEditor);
+  //       setShowEditor(false);
+  //     }
+  //   },
+  //   [comments]
+  // );
 
   return (
     <div {...getLineProps({ line, key: rowNum })}>
@@ -340,7 +355,7 @@ const HighlightRow: React.SFC<HighlightRowProps> = ({
         <span {...getTokenProps({ token, key })} />
       ))}
       {commentsForRow.map((comment, key) => {
-        console.log("render commentbox for line", rowNum, key);
+        //xxx  console.log("render commentbox for line", rowNum, key);
         return <CommentBox {...{ ...comment, key, onReplyClicked }} />;
       }) || null}
       {showEditor && (
@@ -364,9 +379,9 @@ const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
   const codeRef = useRef<HTMLElement>(null);
   const useComments = useState(getCommentsForFile(data));
 
-  console.log("comments for file", useComments[0]);
+  //xxx  console.log("comments for file", useComments[0]);
 
-  console.log("HighlightPre renders", props);
+  //xxx  console.log("HighlightPre renders", props);
 
   /*   const rows = insertCommentsToCode(tokens, data);
 
@@ -375,12 +390,12 @@ const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
       <code className={`code-content ${className}`}>
         {rows.map((line, i) => {
           return Array.isArray(line) ? (
-            <HighlightRow line={line} index={i} {...props} />
+            <RenderRow line={line} index={i} {...props} />
           ) : (
             <CommentBox
               {...line}
               onReplyClicked={() => {
-                console.log("opne editor for line ", i + 1);
+              //xxx  console.log("opne editor for line ", i + 1);
               }}
               key={10 * rows.length + i}
             />
@@ -391,10 +406,10 @@ const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
   ); */
 
   useEffect(() => {
-    console.log("on useEffect HighlightPre");
+    //xxx  console.log("on useEffect HighlightPre");
   });
 
-  // <HighlightRow line={line} index={i} key={i} {...props} />
+  // <RenderRow line={line} index={i} key={i} {...props} />
   return (
     <pre className={className}>
       <code
@@ -408,12 +423,10 @@ const HighlightPre: React.SFC<HighlightPreProps> = ({ ...props }) => {
         }}
       >
         {tokens.map((line, i) => (
-          <HighlightRow
-            {...props}
-            line={line}
+          <RenderRow
+            {...{ ...props, line, useComments }}
             rowNum={i + 1}
             key={i + 1}
-            useComments={useComments}
           />
         ))}
       </code>
@@ -435,7 +448,7 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId }) => {
           return null;
         }
 
-        console.log("FindCodeReviewQuestionsComponent");
+        //xxx  console.log("FindCodeReviewQuestionsComponent");
 
         return (
           <HighlightCode

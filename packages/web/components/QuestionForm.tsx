@@ -135,16 +135,16 @@ export const CreateQuestion = ({
             postId,
             programmingLanguage,
           };
-          // const response = await mutate({
-          //   variables: {
-          //     codeReviewQuestion,
-          //   },
-          // });
-          const response = {};
-          console.log(response);
+          const response = await mutate({
+            variables: {
+              codeReviewQuestion,
+            },
+          });
+          // const response = {};
+          //xxx  console.log(response);
           onEditorSubmit({
             response,
-            data: { type: "question", codeReviewQuestion },
+            data: { type: "question", ...codeReviewQuestion },
           });
         } else {
           onEditorSubmit();
