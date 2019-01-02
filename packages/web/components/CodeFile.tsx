@@ -2,13 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
 import normalizeTokens from "prism-react-renderer/lib/utils/normalizeTokens";
-import Highlight, {
-  Token,
-  RenderProps,
-  TokenInputProps,
-} from "prism-react-renderer";
-import { IconButton, styled, css, SimpleInterpolation } from "@codeponder/ui";
-import { CommentProps, Comments, LineNo, CommentBox } from "./commentUI";
+import { Token, TokenInputProps } from "prism-react-renderer";
+import { styled, css, SimpleInterpolation } from "@codeponder/ui";
+import { CommentProps, Comments } from "./commentUI";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -18,8 +14,7 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
-import { CommentData, AddComment } from "./CommentSection";
-import { getScrollY } from "../utils/domScrollUtils";
+import { CommentsForRow } from "./CommentsForRow";
 
 interface Props {
   owner: string;
@@ -28,17 +23,9 @@ interface Props {
   postId: string;
 }
 
-interface HighlightPreProps extends RenderProps, CommentData {
-  data: FindCodeReviewQuestionsQuery;
-  owner: string;
-}
-interface RenderRowProps extends CommentData {
-  owner: string;
-  line: Token[];
-  comments: CommentProps[];
-  getLineProps: RenderProps["getLineProps"];
-  getTokenProps: RenderProps["getTokenProps"];
-  rowNum: number;
+interface loadingCodeState {
+  pending: boolean;
+  resolved?: string[];
 }
 
 /*
@@ -102,7 +89,6 @@ const setIsHovered = (
   { target: elm }: any,
   showButton: boolean
 ) => {
-  if (true) return false;
   while (elm && elm != current && !elm.classList.contains("token-line")) {
     // hide the button when user hover over commets or line-number
     const name = elm.classList[0];
@@ -119,131 +105,6 @@ const setIsHovered = (
       elm.childNodes[1].classList.add("is-hovered");
     }
   }
-};
-
-const RenderRow: React.SFC<RenderRowProps> = ({
-  line,
-  getLineProps,
-  getTokenProps,
-  rowNum,
-  comments,
-  owner,
-  ...props
-}) => {
-  const [showEditor, setShowEditor] = useState(false);
-  const [commentsForRow, setCommentsForRow] = useState(comments || []);
-
-  /*
-  use useCallback for onOpenEditor and submitting
-  const memoizedCallback = useCallback(
-    () => {
-      doSomething(a, b);
-    },
-    [a, b],
-  );
-
-  */
-
-  const onOpenEditor = () => {
-    setShowEditor(true);
-  };
-
-  let submitting = false;
-  const onEditorSubmit = async (result: any) => {
-    if (result) {
-      try {
-        const response = await result.response;
-        console.log(response);
-
-        const data =
-          result.data.type == "question"
-            ? response.data.createCodeReviewQuestion.codeReviewQuestion
-            : response.data.createQuestionReply.questionReply;
-
-        result.data.username = data.creator.username;
-        result.data.isOwner = data.creator.username = owner;
-        result.data.id = data.id;
-        result.data.__typename = data.__typename;
-        submitting = true;
-        setCommentsForRow([...commentsForRow, result.data]);
-      } catch (ex) {
-        console.log("Error when saving form", result.data.type, ex);
-      }
-    }
-    setShowEditor(false);
-  };
-
-  useEffect(
-    () => {
-      submitting = false;
-    },
-    [showEditor]
-  );
-
-  useEffect(() => {
-    // prevent page scroll after submiting comment form
-    const stopScroll = (event: UIEvent): void => {
-      if (submitting) {
-        event.preventDefault();
-        window.scrollTo(0, getScrollY());
-      }
-    };
-    window.addEventListener("scroll", stopScroll);
-    return () => {
-      window.removeEventListener("scroll", stopScroll);
-    };
-  }, []);
-
-  /*
-option 1
-  move commentsForRow.map to
-  AddComment, rename the component CommentSection
-
-  option 2
-  creat child component in AddComment and store new comments in
-  AddComment, with this approach we dont need to render the row
-  only AddComment will render !!!
-
-  option 3
-  don't change curret code
-
-  the only reason to do 1 or 2 if it will be faster user exp.
-
-  regarding data we get after motation check if i can update the array after render comment in AddComment component
-
-  */
-
-  // check if it is faster to add code as a child innerhtml
-  // is it posible to render only the edit box with react on this page?
-
-  return (
-    <div {...getLineProps({ line, key: rowNum })}>
-      <LineNo>{rowNum}</LineNo>
-      <IconButton
-        style={{ margin: "-2px 0px -2px -20px" }}
-        variant="primary"
-        icon="plus"
-        className="hidden"
-        onClick={onOpenEditor}
-      />
-      {line.map((token, key) => (
-        <span {...getTokenProps({ token, key })} />
-      ))}
-      {commentsForRow.map((comment, key) => {
-        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-      }) || null}
-      {showEditor && (
-        <AddComment
-          {...{
-            ...props,
-            comments: commentsForRow,
-            line: rowNum,
-            onEditorSubmit,
-          }}
-        />
-      )}
-    </div>
-  );
 };
 
 const Pre = styled.pre`
@@ -269,7 +130,7 @@ const Pre = styled.pre`
     }
   }
 
-  & .open-edit-btn {
+  & .btn-open-edit {
     appearance: none;
     border: none;
     text-align: center;
@@ -316,159 +177,6 @@ const Pre = styled.pre`
   ${(p: { selectedLines: SimpleInterpolation }) => p.selectedLines}
 `;
 
-const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
-  const { className, data, tokens, owner } = props;
-
-  const codeRef = useRef<HTMLElement>(null);
-  const comments = getCommentsForFile(data, owner);
-
-  return (
-    <Pre className={className} selectedLines={SelectLines(data)}>
-      <code
-        className={`code-content ${className}`}
-        ref={codeRef}
-        onMouseOut={(e: any): void => {
-          setIsHovered(codeRef, e, false);
-        }}
-        onMouseOver={(e: any): void => {
-          setIsHovered(codeRef, e, true);
-        }}
-      >
-        {tokens.map((line, i) => (
-          <RenderRow
-            {...{ ...props, line, comments: comments[i + 1] }}
-            rowNum={i + 1}
-            key={i + 1}
-          />
-        ))}
-      </code>
-    </Pre>
-  );
-};
-
-interface loadingCodeState {
-  pending: boolean;
-  resolved?: { __html: string }[];
-}
-
-// const useLoadLanguage = (lang: string) => {
-const useLoadLanguage = (lang: string, code: string) => {
-  const hasLoadedLanguage = useRef(false);
-  const [loadingCode, setloadingCode] = useState<loadingCodeState>({
-    pending: true,
-  });
-
-  useEffect(() => {
-    if (!hasLoadedLanguage.current) {
-      getHighlightCode(code, lang).then(tokens => {
-        hasLoadedLanguage.current = true;
-        setloadingCode({ pending: false, resolved: tokens });
-      });
-    }
-    // if (!hasLoadedLanguage.current) {
-    //   loadLanguage(lang)
-    //     .then(() => {
-    //       setloadingCode(false);
-    //       let highlightedCode = "";
-    //       Prism.hooks.all = {};
-    //       Prism.hooks.add("after-tokenize", ({ tokens }) => {
-    //         // console.log("after-tokenize", tokens);
-    //         const tkns = normalizeTokens(tokens);
-    //         ///XXXcheck if i can stringufy the tokens
-    //         /// for places without comments
-    //         console.log("after-tokenize", tkns);
-    //       });
-    //       Prism.hooks.add("complete", env => {
-    //         console.log("complete");
-    //         highlightedCode = env.highlightedCode;
-    //       });
-    //       const element = document.createElement("code");
-    //       // var code = element.textContent;
-    //       element.textContent = ref.current.textContent;
-    //       element.className = ref.current.className;
-    //       new Promise(resolve => {
-    //         // Prism.highlightAll(true, resolve);
-    //         Prism.highlightElement(element, false, resolve);
-    //       }).then(() => {
-    //         // console.log("highlightedCode ", highlightedCode);
-    //       });
-    //       hasLoadedLanguage.current = true;
-    //     })
-    //     .catch(() => {
-    //       Prism.highlightAll();
-    //     });
-    // }
-  }, []);
-  return loadingCode;
-};
-
-export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
-  const codeRef = useRef<HTMLElement>(null);
-  const lang = path ? filenameToLang(path) : "";
-  const loadingCode = useLoadLanguage(lang, code || "");
-
-  const variables = {
-    path,
-    postId,
-  };
-
-  return (
-    <FindCodeReviewQuestionsComponent variables={variables}>
-      {({ data, loading }) => {
-        if (!data || loading || loadingCode.pending) {
-          return null;
-        }
-
-        const tokens = loadingCode.resolved!;
-
-        return (
-          <Pre className={`language-${lang}`} selectedLines={SelectLines(data)}>
-            <code
-              className={`code-content language-${lang}`}
-              ref={codeRef}
-              onMouseOut={(e: any): void => {
-                setIsHovered(codeRef, e, false);
-              }}
-              onMouseOver={(e: any): void => {
-                setIsHovered(codeRef, e, true);
-              }}
-            >
-              {tokens.map((line, rowNum) => (
-                <div
-                  className="token-line"
-                  key={rowNum}
-                  dangerouslySetInnerHTML={line}
-                />
-              ))}
-            </code>
-          </Pre>
-        );
-
-        // return (
-        //   <pre className={`line-numbers`}>
-        //     <code className={`language-${lang}`}>{code}</code>
-        //   </pre>
-        // );
-
-        // return (
-        //   <Highlight Prism={Prism} code={code || ""} language={lang}>
-        //     {props => (
-        //       <HighlightFuncComponent
-        //         {...props}
-        //         {...variables}
-        //         owner={owner}
-        //         data={data}
-        //         code={code || ""}
-        //         lang={lang}
-        //       />
-        //     )}
-        //   </Highlight>
-        // );
-      }}
-    </FindCodeReviewQuestionsComponent>
-  );
-};
-
 const getTokenProps = ({
   key,
   className,
@@ -476,9 +184,14 @@ const getTokenProps = ({
   token,
   ...rest
 }: TokenInputProps): string => {
+  const types = token.types.join(" ");
+  if (types == "plain") {
+    return token.content;
+  }
+
   const output = {
     ...rest,
-    class: `token ${token.types.join(" ")}`,
+    class: `token ${types}`,
   };
 
   if (style !== undefined) {
@@ -496,6 +209,9 @@ const getTokenProps = ({
   return `<span ${stringOutput}>${token.content}</span>`;
 };
 
+const PlusButton =
+  '<button variant = "primary" class="btn-open-edit hidden"><svg viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true" preserveAspectRatio="xMaxYMax meet"><path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path></svg></button>';
+
 const getHighlightCode = async (code: string, lang: string) => {
   let grammar = Prism.languages[lang];
   if (grammar === undefined) {
@@ -510,12 +226,77 @@ const getHighlightCode = async (code: string, lang: string) => {
     const children = line
       .map((token, key) => getTokenProps({ token, key }))
       .join("");
-    return {
-      __html: `<span class="line-number">${rowNum +
-        1}</span>${PlusButton}${children}`,
-    };
+    return `<span class="line-number">${rowNum +
+      1}</span>${PlusButton}${children}`;
   });
 };
 
-const PlusButton =
-  '<button variant = "primary" class="open-edit-btn hidden"><svg viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true" preserveAspectRatio="xMaxYMax meet"><path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path></svg></button>';
+const useLoadLanguage = (lang: string, code: string) => {
+  const hasLoadedLanguage = useRef(false);
+  const [loadingCode, setloadingCode] = useState<loadingCodeState>({
+    pending: true,
+  });
+
+  useEffect(() => {
+    if (!hasLoadedLanguage.current) {
+      getHighlightCode(code, lang).then(tokens => {
+        hasLoadedLanguage.current = true;
+        setloadingCode({ pending: false, resolved: tokens });
+      });
+    }
+  }, []);
+  return loadingCode;
+};
+
+export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
+  const codeRef = useRef<HTMLElement>(null);
+
+  const lang = path ? filenameToLang(path) : "";
+  const loadingCode = useLoadLanguage(lang, code || "");
+
+  const variables = {
+    path,
+    postId,
+  };
+
+  return (
+    <FindCodeReviewQuestionsComponent variables={variables}>
+      {({ data, loading }) => {
+        if (!data || loading || loadingCode.pending) {
+          return null;
+        }
+
+        const highlightedCode = loadingCode.resolved!;
+        const comments = getCommentsForFile(data, owner);
+
+        return (
+          <Pre className={`language-${lang}`} selectedLines={SelectLines(data)}>
+            <code
+              className={`code-content language-${lang}`}
+              ref={codeRef}
+              onMouseOut={(e: any): void => {
+                setIsHovered(codeRef, e, false);
+              }}
+              onMouseOver={(e: any): void => {
+                setIsHovered(codeRef, e, true);
+              }}
+            >
+              {highlightedCode.map((line, index) => (
+                <CommentsForRow
+                  key={index}
+                  code={code || ""}
+                  comments={comments[index + 1]}
+                  lang={lang}
+                  line={line}
+                  owner={owner}
+                  rowNum={index + 1}
+                  {...variables}
+                />
+              ))}
+            </code>
+          </Pre>
+        );
+      }}
+    </FindCodeReviewQuestionsComponent>
+  );
+};
