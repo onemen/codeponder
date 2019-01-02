@@ -1,9 +1,12 @@
 import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
+import "prismjs/plugins/line-numbers/prism-line-numbers.css";
+import "prismjs/plugins/line-numbers/prism-line-numbers.js";
 import Highlight, { Token, RenderProps } from "prism-react-renderer";
 import { IconButton, styled, css, SimpleInterpolation } from "@codeponder/ui";
 import { CommentProps, Comments, LineNo, CommentBox } from "./commentUI";
+import normalizeTokens from "prism-react-renderer/lib/utils/normalizeTokens";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -15,6 +18,7 @@ import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { CommentData, AddComment } from "./CommentSection";
 import { getScrollY } from "../utils/domScrollUtils";
+import { resolve } from "path";
 
 interface Props {
   owner: string;
@@ -127,6 +131,17 @@ const RenderRow: React.SFC<RenderRowProps> = ({
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
 
+  /*
+  use useCallback for onOpenEditor and submitting
+  const memoizedCallback = useCallback(
+    () => {
+      doSomething(a, b);
+    },
+    [a, b],
+  );
+
+  */
+
   const onOpenEditor = () => {
     setShowEditor(true);
   };
@@ -192,7 +207,12 @@ option 1
 
   the only reason to do 1 or 2 if it will be faster user exp.
 
+  regarding data we get after motation check if i can update the array after render comment in AddComment component
+
   */
+
+  // check if it is faster to add code as a child innerhtml
+  // is it posible to render only the edit box with react on this page?
 
   return (
     <div {...getLineProps({ line, key: rowNum })}>
@@ -263,7 +283,7 @@ const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
   );
 };
 
-const useLoadLanguage = (lang: string) => {
+const useLoadLanguage = (lang: string, ref: any) => {
   const hasLoadedLanguage = useRef(false);
   const [loadingLang, setloadingLang] = useState(true);
 
@@ -272,17 +292,44 @@ const useLoadLanguage = (lang: string) => {
       loadLanguage(lang)
         .then(() => {
           setloadingLang(false);
+          let highlightedCode = "";
+          Prism.hooks.all = {};
+          Prism.hooks.add("after-tokenize", ({ tokens }) => {
+            // console.log("after-tokenize", tokens);
+            const tkns = normalizeTokens(tokens);
+            ///XXXcheck if i can stringufy the tokens
+            /// for places without comments
+            console.log("after-tokenize", tkns);
+          });
+
+          Prism.hooks.add("complete", env => {
+            console.log("complete");
+            highlightedCode = env.highlightedCode;
+          });
+          const element = document.createElement("code");
+          // var code = element.textContent;
+          element.textContent = ref.current.textContent;
+          element.className = ref.current.className;
+          new Promise(resolve => {
+            // Prism.highlightAll(true, resolve);
+            Prism.highlightElement(element, false, resolve);
+          }).then(() => {
+            // console.log("highlightedCode ", highlightedCode);
+          });
           hasLoadedLanguage.current = true;
         })
-        .catch(() => {});
+        .catch(() => {
+          Prism.highlightAll();
+        });
     }
   }, []);
   return loadingLang;
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
+  const codeCodeRef = useRef<HTMLElement>(null);
   const lang = path ? filenameToLang(path) : "";
-  const loadingLang = useLoadLanguage(lang);
+  const loadingLang = useLoadLanguage(lang, codeCodeRef);
 
   const variables = {
     path,
@@ -297,19 +344,33 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
         }
 
         return (
-          <Highlight Prism={Prism} code={code || ""} language={lang}>
-            {props => (
-              <HighlightFuncComponent
-                {...props}
-                {...variables}
-                owner={owner}
-                data={data}
-                code={code || ""}
-                lang={lang}
-              />
-            )}
-          </Highlight>
+          <pre className={`line-numbers`}>
+            <code ref={codeCodeRef} className={`language-${lang}`}>
+              {code}
+            </code>
+          </pre>
         );
+
+        // return (
+        //   <pre className={`line-numbers`}>
+        //     <code className={`language-${lang}`}>{code}</code>
+        //   </pre>
+        // );
+
+        // return (
+        //   <Highlight Prism={Prism} code={code || ""} language={lang}>
+        //     {props => (
+        //       <HighlightFuncComponent
+        //         {...props}
+        //         {...variables}
+        //         owner={owner}
+        //         data={data}
+        //         code={code || ""}
+        //         lang={lang}
+        //       />
+        //     )}
+        //   </Highlight>
+        // );
       }}
     </FindCodeReviewQuestionsComponent>
   );
