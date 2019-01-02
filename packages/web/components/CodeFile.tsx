@@ -85,8 +85,7 @@ const getCommentsForFile = (
 };
 
 const setIsHovered = (
-  { current }: React.RefObject<HTMLElement>,
-  { target: elm }: any,
+  { target: elm, currentTarget: current }: any,
   showButton: boolean
 ) => {
   while (elm && elm != current && !elm.classList.contains("token-line")) {
@@ -100,7 +99,9 @@ const setIsHovered = (
   if (elm && current) {
     current
       .querySelectorAll(".is-hovered")
-      .forEach(button => button.classList.toggle("is-hovered", false));
+      .forEach((button: HTMLButtonElement) =>
+        button.classList.toggle("is-hovered", false)
+      );
     if (showButton) {
       elm.childNodes[1].classList.add("is-hovered");
     }
@@ -249,8 +250,6 @@ const useLoadLanguage = (lang: string, code: string) => {
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
-  const codeRef = useRef<HTMLElement>(null);
-
   const lang = path ? filenameToLang(path) : "";
   const loadingCode = useLoadLanguage(lang, code || "");
 
@@ -273,12 +272,11 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
           <Pre className={`language-${lang}`} selectedLines={SelectLines(data)}>
             <code
               className={`code-content language-${lang}`}
-              ref={codeRef}
               onMouseOut={(e: any): void => {
-                setIsHovered(codeRef, e, false);
+                setIsHovered(e, false);
               }}
               onMouseOver={(e: any): void => {
-                setIsHovered(codeRef, e, true);
+                setIsHovered(e, true);
               }}
             >
               {highlightedCode.map((line, index) => (
