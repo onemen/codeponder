@@ -1,12 +1,14 @@
 import { useRef, useState, useEffect } from "react";
 import * as Prism from "prismjs";
 import "prismjs/themes/prism-coy.css";
-import "prismjs/plugins/line-numbers/prism-line-numbers.css";
-import "prismjs/plugins/line-numbers/prism-line-numbers.js";
-import Highlight, { Token, RenderProps } from "prism-react-renderer";
+import normalizeTokens from "prism-react-renderer/lib/utils/normalizeTokens";
+import Highlight, {
+  Token,
+  RenderProps,
+  TokenInputProps,
+} from "prism-react-renderer";
 import { IconButton, styled, css, SimpleInterpolation } from "@codeponder/ui";
 import { CommentProps, Comments, LineNo, CommentBox } from "./commentUI";
-import normalizeTokens from "prism-react-renderer/lib/utils/normalizeTokens";
 
 import {
   FindCodeReviewQuestionsComponent,
@@ -18,7 +20,6 @@ import { filenameToLang } from "../utils/filenameToLang";
 import { loadLanguage } from "../utils/loadLanguage";
 import { CommentData, AddComment } from "./CommentSection";
 import { getScrollY } from "../utils/domScrollUtils";
-import { resolve } from "path";
 
 interface Props {
   owner: string;
@@ -101,6 +102,7 @@ const setIsHovered = (
   { target: elm }: any,
   showButton: boolean
 ) => {
+  if (true) return false;
   while (elm && elm != current && !elm.classList.contains("token-line")) {
     // hide the button when user hover over commets or line-number
     const name = elm.classList[0];
@@ -250,6 +252,67 @@ const Pre = styled.pre`
     overflow: hidden;
   }
 
+  & .line-number {
+    border-right: 1px solid #999;
+    color: #999;
+    cursor: pointer;
+    display: inline-block;
+    letter-spacing: -1px;
+    margin-right: 0.65em;
+    padding-right: 0.8em;
+    text-align: right;
+    user-select: none;
+    width: 3em;
+
+    & .line-number-comment {
+      cursor: normal;
+    }
+  }
+
+  & .open-edit-btn {
+    appearance: none;
+    border: none;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+
+    /* primary */
+    background-color: #6dc1fd;
+    color: #ffffff;
+    font-size: 1.4rem ";
+    padding: .8rem 1rem";
+    text-transform: uppercase;
+    border-radius: 0.4rem;
+
+    margin: -2px 0px -2px -20px;
+    padding: 0;
+    width: 22px;
+    height: 22px;
+    transform: scale(0.8);
+    transition: transform 0.1s ease-in-out;
+
+    &.hidden {
+      opacity: 0;
+    }
+
+    &:hover {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    &.is-hovered {
+      opacity: 1;
+    }
+
+    & svg {
+      display: inline-block;
+      fill: currentColor;
+      vertical-align: text-top;
+      pointer-events: none;
+    }
+  }
+
   ${(p: { selectedLines: SimpleInterpolation }) => p.selectedLines}
 `;
 
@@ -283,53 +346,66 @@ const HighlightFuncComponent: React.SFC<HighlightPreProps> = ({ ...props }) => {
   );
 };
 
-const useLoadLanguage = (lang: string, ref: any) => {
+interface loadingCodeState {
+  pending: boolean;
+  resolved?: { __html: string }[];
+}
+
+// const useLoadLanguage = (lang: string) => {
+const useLoadLanguage = (lang: string, code: string) => {
   const hasLoadedLanguage = useRef(false);
-  const [loadingLang, setloadingLang] = useState(true);
+  const [loadingCode, setloadingCode] = useState<loadingCodeState>({
+    pending: true,
+  });
 
   useEffect(() => {
     if (!hasLoadedLanguage.current) {
-      loadLanguage(lang)
-        .then(() => {
-          setloadingLang(false);
-          let highlightedCode = "";
-          Prism.hooks.all = {};
-          Prism.hooks.add("after-tokenize", ({ tokens }) => {
-            // console.log("after-tokenize", tokens);
-            const tkns = normalizeTokens(tokens);
-            ///XXXcheck if i can stringufy the tokens
-            /// for places without comments
-            console.log("after-tokenize", tkns);
-          });
-
-          Prism.hooks.add("complete", env => {
-            console.log("complete");
-            highlightedCode = env.highlightedCode;
-          });
-          const element = document.createElement("code");
-          // var code = element.textContent;
-          element.textContent = ref.current.textContent;
-          element.className = ref.current.className;
-          new Promise(resolve => {
-            // Prism.highlightAll(true, resolve);
-            Prism.highlightElement(element, false, resolve);
-          }).then(() => {
-            // console.log("highlightedCode ", highlightedCode);
-          });
-          hasLoadedLanguage.current = true;
-        })
-        .catch(() => {
-          Prism.highlightAll();
-        });
+      getHighlightCode(code, lang).then(tokens => {
+        hasLoadedLanguage.current = true;
+        setloadingCode({ pending: false, resolved: tokens });
+      });
     }
+    // if (!hasLoadedLanguage.current) {
+    //   loadLanguage(lang)
+    //     .then(() => {
+    //       setloadingCode(false);
+    //       let highlightedCode = "";
+    //       Prism.hooks.all = {};
+    //       Prism.hooks.add("after-tokenize", ({ tokens }) => {
+    //         // console.log("after-tokenize", tokens);
+    //         const tkns = normalizeTokens(tokens);
+    //         ///XXXcheck if i can stringufy the tokens
+    //         /// for places without comments
+    //         console.log("after-tokenize", tkns);
+    //       });
+    //       Prism.hooks.add("complete", env => {
+    //         console.log("complete");
+    //         highlightedCode = env.highlightedCode;
+    //       });
+    //       const element = document.createElement("code");
+    //       // var code = element.textContent;
+    //       element.textContent = ref.current.textContent;
+    //       element.className = ref.current.className;
+    //       new Promise(resolve => {
+    //         // Prism.highlightAll(true, resolve);
+    //         Prism.highlightElement(element, false, resolve);
+    //       }).then(() => {
+    //         // console.log("highlightedCode ", highlightedCode);
+    //       });
+    //       hasLoadedLanguage.current = true;
+    //     })
+    //     .catch(() => {
+    //       Prism.highlightAll();
+    //     });
+    // }
   }, []);
-  return loadingLang;
+  return loadingCode;
 };
 
 export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
-  const codeCodeRef = useRef<HTMLElement>(null);
+  const codeRef = useRef<HTMLElement>(null);
   const lang = path ? filenameToLang(path) : "";
-  const loadingLang = useLoadLanguage(lang, codeCodeRef);
+  const loadingCode = useLoadLanguage(lang, code || "");
 
   const variables = {
     path,
@@ -339,16 +415,33 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
   return (
     <FindCodeReviewQuestionsComponent variables={variables}>
       {({ data, loading }) => {
-        if (!data || loading || loadingLang) {
+        if (!data || loading || loadingCode.pending) {
           return null;
         }
 
+        const tokens = loadingCode.resolved!;
+
         return (
-          <pre className={`line-numbers`}>
-            <code ref={codeCodeRef} className={`language-${lang}`}>
-              {code}
+          <Pre className={`language-${lang}`} selectedLines={SelectLines(data)}>
+            <code
+              className={`code-content language-${lang}`}
+              ref={codeRef}
+              onMouseOut={(e: any): void => {
+                setIsHovered(codeRef, e, false);
+              }}
+              onMouseOver={(e: any): void => {
+                setIsHovered(codeRef, e, true);
+              }}
+            >
+              {tokens.map((line, rowNum) => (
+                <div
+                  className="token-line"
+                  key={rowNum}
+                  dangerouslySetInnerHTML={line}
+                />
+              ))}
             </code>
-          </pre>
+          </Pre>
         );
 
         // return (
@@ -375,3 +468,54 @@ export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
     </FindCodeReviewQuestionsComponent>
   );
 };
+
+const getTokenProps = ({
+  key,
+  className,
+  style,
+  token,
+  ...rest
+}: TokenInputProps): string => {
+  const output = {
+    ...rest,
+    class: `token ${token.types.join(" ")}`,
+  };
+
+  if (style !== undefined) {
+    output.style =
+      output.style !== undefined ? { ...output.style, ...style } : style;
+  }
+
+  if (key !== undefined) output.key = key;
+  if (className) output.class += ` ${className}`;
+
+  const stringOutput = Object.entries(output)
+    .map(([key, val]) => `${key}="${val}"`)
+    .join(" ");
+
+  return `<span ${stringOutput}>${token.content}</span>`;
+};
+
+const getHighlightCode = async (code: string, lang: string) => {
+  let grammar = Prism.languages[lang];
+  if (grammar === undefined) {
+    await loadLanguage(lang);
+    grammar = Prism.languages[lang];
+  }
+  const mixedTokens =
+    grammar !== undefined ? Prism.tokenize(code, grammar) : [code];
+  // console.log(normalizeTokens);
+  const normalize: Token[][] = normalizeTokens(mixedTokens as any);
+  return normalize.map((line, rowNum) => {
+    const children = line
+      .map((token, key) => getTokenProps({ token, key }))
+      .join("");
+    return {
+      __html: `<span class="line-number">${rowNum +
+        1}</span>${PlusButton}${children}`,
+    };
+  });
+};
+
+const PlusButton =
+  '<button variant = "primary" class="open-edit-btn hidden"><svg viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true" preserveAspectRatio="xMaxYMax meet"><path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path></svg></button>';

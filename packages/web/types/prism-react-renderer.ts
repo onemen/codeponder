@@ -136,7 +136,7 @@ declare module "prism-react-renderer" {
     [otherProps: string]: any;
   };
 
-  type TokenInputProps = {
+  export type TokenInputProps = {
     key?: React.Key;
     style?: StyleObj;
     className?: string;
@@ -144,7 +144,7 @@ declare module "prism-react-renderer" {
     [otherProp: string]: any;
   };
 
-  type TokenOutputProps = {
+  export type TokenOutputProps = {
     key?: React.Key;
     style?: StyleObj;
     className: string;
@@ -192,3 +192,22 @@ declare module "prism-react-renderer/themes/*" {
   const theme: PrismTheme;
   export default theme;
 }
+
+/* declare module "prism-react-renderer/lib/utils/normalizeTokens" {
+  type Token = {
+    types: string[];
+    content: string;
+    empty?: boolean;
+  };
+
+  export type PrismToken = {
+    type: string;
+    content: Array<PrismToken | string> | string;
+  };
+
+  export function normalizeTokens(
+    tokens: Array<PrismToken | string>
+  ): Token[][];
+}
+ */
+declare module "prism-react-renderer/lib/utils/normalizeTokens";
