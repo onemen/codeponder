@@ -1,8 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import * as Prism from "prismjs";
+import Prism from "prismjs/components/prism-core";
 import "prismjs/themes/prism-coy.css";
-// import normalizeTokens from "prism-react-renderer/lib/utils/normalizeTokens";
-// import { Token, TokenInputProps } from "prism-react-renderer";
 import { styled, css, SimpleInterpolation } from "@codeponder/ui";
 import { CommentProps, Comments } from "./commentUI";
 
@@ -146,8 +144,8 @@ const Pre = styled.pre`
     /* primary */
     background-color: #6dc1fd;
     color: #ffffff;
-    font-size: 1.4rem ";
-    padding: .8rem 1rem";
+    font-size: 1.4rem;
+    padding: 0.8rem 1rem;
     text-transform: uppercase;
     border-radius: 0.4rem;
 
@@ -245,7 +243,7 @@ const getHighlightCode = async (code: string, lang: string) => {
   const stringify = Prism.Token.stringify(
     encoded,
     lang as Prism.LanguageDefinition,
-    {}
+    {} as HTMLPreElement
   );
   // console.log({ stringify });
   // console.log({ splited_stringify: stringify.split("\n") });
@@ -266,7 +264,7 @@ const getHighlightCode = async (code: string, lang: string) => {
 
 const useLoadLanguage = (lang: string, code: string) => {
   const hasLoadedLanguage = useRef(false);
-  const [loadingCode, setloadingCode] = useState<loadingCodeState>({
+  const [loadingCode, setLoadingCode] = useState<loadingCodeState>({
     pending: true,
   });
 
@@ -274,7 +272,7 @@ const useLoadLanguage = (lang: string, code: string) => {
     if (!hasLoadedLanguage.current) {
       getHighlightCode(code, lang).then(tokens => {
         hasLoadedLanguage.current = true;
-        setloadingCode({ pending: false, resolved: tokens });
+        setLoadingCode({ pending: false, resolved: tokens });
       });
     }
   }, []);
