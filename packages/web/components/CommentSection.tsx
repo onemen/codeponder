@@ -33,11 +33,9 @@ export const AddComment: React.SFC<AddCommentProps> = ({
 
   return isReplay ? (
     <CreateQuestionReply
-      {...{
-        ...commentProps,
-        startingLineNum: question!.startingLineNum,
-        questionId: question!.id,
-      }}
+      {...commentProps}
+      startingLineNum={question!.startingLineNum}
+      questionId={question!.id}
     />
   ) : (
     <CreateQuestion {...commentProps} />
