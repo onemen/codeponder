@@ -94,7 +94,7 @@ const setIsHovered = (
   while (elm && elm != current && !elm.classList.contains("token-line")) {
     // hide the button when user hover over commets or line-number
     const name = elm.classList[0];
-    if (name && name.match(/CommentBoxContainer|LineNo/)) {
+    if (name && name.match(/CommentBoxContainer|line-number/)) {
       showButton = false;
     }
     elm = elm.parentNode || null;
@@ -129,8 +129,8 @@ const Pre = styled.pre`
     user-select: none;
     width: 3em;
 
-    & .line-number-comment {
-      cursor: normal;
+    &.comment {
+      cursor: default;
     }
   }
 

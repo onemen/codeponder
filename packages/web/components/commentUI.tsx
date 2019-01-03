@@ -11,19 +11,6 @@ export const getBorderColor = (type: string) => {
   return colors[type];
 };
 
-export const LineNo = styled.a`
-  border-right: 1px solid #999;
-  color: #999;
-  cursor: ${(p: { cursor?: string }) => p.cursor || "pointer"};
-  display: inline-block;
-  letter-spacing: -1px;
-  margin-right: 0.65em;
-  padding-right: 0.8em;
-  text-align: right;
-  user-select: none;
-  width: 3em;
-`;
-
 export const CommentBoxContainer = styled.div`
   background-color: #fff;
   display: grid;
@@ -92,7 +79,7 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
   onOpenEditor,
 }) => (
   <CommentBoxContainer color={getBorderColor(type)}>
-    <LineNo cursor="default" />
+    <span className="line-number comment" />
     <div className="comment-innder-box">
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
@@ -120,7 +107,7 @@ export const wrapEditor = (ChildComponent: (props: any) => JSX.Element) => (
   props: any
 ) => (
   <CommentBoxContainer color={getBorderColor("editor")}>
-    <LineNo cursor="default" />
+    <span className="line-number comment" />
     <div className="comment-innder-box">
       <ChildComponent {...props} />
     </div>
