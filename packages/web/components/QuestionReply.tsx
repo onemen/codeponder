@@ -52,7 +52,7 @@ export const CreateQuestionReply = ({
 }: QuestionReplyProps) => (
   <CreateQuestionReplyComponent>
     {mutate => {
-      const submitForm = ({ cancel, text }: TextEditorResult) => {
+      const submitForm = async ({ cancel, text }: TextEditorResult) => {
         if (!cancel) {
           // save result
           const questionReply = {
@@ -60,18 +60,21 @@ export const CreateQuestionReply = ({
             text,
           };
 
-          const response = mutate({
+          const response = await mutate({
             variables: {
               questionReply,
             },
           });
 
+          console.log(response);
+
           onEditorSubmit({
+            submitted: true,
             response,
             data: { type: "reply", ...questionReply },
           });
         } else {
-          onEditorSubmit();
+          onEditorSubmit({ submitted: false });
         }
       };
       return <WrappedTextEditor {...{ ...props, submitForm }} />;

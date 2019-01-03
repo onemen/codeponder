@@ -140,12 +140,16 @@ export const CreateQuestion = ({
               codeReviewQuestion,
             },
           });
+
+          console.log(response);
+
           onEditorSubmit({
+            submitted: true,
             response,
             data: { type: "question", ...codeReviewQuestion },
           });
         } else {
-          onEditorSubmit();
+          onEditorSubmit({ submitted: false });
         }
       };
       return <WrappedTextEditor {...{ ...props, submitForm }} />;

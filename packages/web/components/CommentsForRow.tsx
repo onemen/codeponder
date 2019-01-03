@@ -19,46 +19,40 @@ export const CommentsForRow: React.SFC<RenderRowProps> = ({
 }) => {
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
-  const codeRef = useRef<HTMLDivElement>(null);
 
-  let submitting = false;
-  const onEditorSubmit = async (result: any) => {
-    if (result) {
-      try {
-        const response = await result.response;
-        console.log(response);
+  let preventScroll = false;
+  let scrollPosition = getScrollY();
+  const onEditorSubmit = ({ submitted, response, data }: any) => {
+    if (submitted) {
+      const { id, creator, __typename } =
+        data.type == "question"
+          ? response.data.createCodeReviewQuestion.codeReviewQuestion
+          : response.data.createQuestionReply.questionReply;
 
-        const data =
-          result.data.type == "question"
-            ? response.data.createCodeReviewQuestion.codeReviewQuestion
-            : response.data.createQuestionReply.questionReply;
-
-        result.data.username = data.creator.username;
-        result.data.isOwner = data.creator.username = owner;
-        result.data.id = data.id;
-        result.data.__typename = data.__typename;
-        submitting = true;
-        setCommentsForRow([...commentsForRow, result.data]);
-      } catch (ex) {
-        console.log("Error when saving form", result.data.type, ex);
-      }
+      data.id = id;
+      data.username = creator.username;
+      data.isOwner = creator.username == owner;
+      data.__typename = __typename;
+      preventScroll = true;
+      scrollPosition = getScrollY();
+      setCommentsForRow([...commentsForRow, data]);
     }
     setShowEditor(false);
   };
 
   useEffect(
     () => {
-      submitting = false;
+      preventScroll = false;
     },
-    [showEditor]
+    [commentsForRow]
   );
 
   useEffect(() => {
     // prevent page scroll after submiting comment form
     const stopScroll = (event: UIEvent): void => {
-      if (submitting) {
+      if (preventScroll) {
         event.preventDefault();
-        window.scrollTo(0, getScrollY());
+        window.scrollTo(0, scrollPosition);
       }
     };
     window.addEventListener("scroll", stopScroll);
@@ -79,7 +73,6 @@ export const CommentsForRow: React.SFC<RenderRowProps> = ({
   return (
     <>
       <div
-        ref={codeRef}
         key={rowNum}
         className="token-line"
         dangerouslySetInnerHTML={{ __html: line }}
