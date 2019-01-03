@@ -35,15 +35,18 @@ interface loadingCodeState {
  * Or the two in a more general utils?
  */
 const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
+  let offset = 0;
   const styles = prop.findCodeReviewQuestions.reduce((total, current) => {
-    return (total += `
-     & .token-line:nth-child(n+${current.startingLineNum}):nth-child(-n+${
-      current.endingLineNum
-    }) {
+    const { startingLineNum, endingLineNum, numReplies } = current;
+    total += `
+     & .token-line:nth-child(n+${startingLineNum +
+       offset}):nth-child(-n+${endingLineNum + offset}) {
       background: hsla(24, 20%, 50%,.08);
       background: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));
     }
-     `);
+     `;
+    offset += numReplies + 1;
+    return total;
   }, "");
   return css`
     ${styles}
