@@ -10,7 +10,7 @@ import {
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
 import { getHighlightedCode } from "../utils/highlightCode";
-import { CommentsForRow } from "./CommentsForRow";
+import { RenderLine } from "./CodeLine";
 
 interface Props {
   owner: string;
@@ -126,8 +126,8 @@ const useHighlight = (lang: string, code: string) => {
         const PlusButton = PLUSBUTTON.split("\n")
           .map(item => item.trim())
           .join("");
-        const tokens = highlightedCode.split("\n").map((line, rowNum) => {
-          return `<span class="line-number">${rowNum +
+        const tokens = highlightedCode.split("\n").map((line, lineNum) => {
+          return `<span class="line-number">${lineNum +
             1}</span>${PlusButton}${line}`;
         });
 
