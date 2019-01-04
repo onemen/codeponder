@@ -17,7 +17,7 @@ export const CommentBoxContainer = styled.div`
   grid-template-columns: 3em auto;
   grid-column-gap: 0.65em;
 
-  & .comment-innder-box {
+  & .comment-inner-box {
     border: 1px solid #999;
     border-left: 10px solid
       ${(p: { color?: string }) => p.color || getBorderColor("question")};
@@ -80,7 +80,7 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
 }) => (
   <CommentBoxContainer color={getBorderColor(type)}>
     <span className="line-number comment" />
-    <div className="comment-innder-box">
+    <div className="comment-inner-box">
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
         {isOwner ? <span className="repo-owner">Author</span> : null}
@@ -102,13 +102,13 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
   </CommentBoxContainer>
 );
 
-// TODO: fix type defenition
+// TODO: fix type definition
 export const wrapEditor = (ChildComponent: (props: any) => JSX.Element) => (
   props: any
 ) => (
   <CommentBoxContainer color={getBorderColor("editor")}>
     <span className="line-number comment" />
-    <div className="comment-innder-box">
+    <div className="comment-inner-box">
       <ChildComponent {...props} />
     </div>
   </CommentBoxContainer>
