@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import "prismjs/themes/prism-coy.css";
-import { styled, css, SimpleInterpolation } from "@codeponder/ui";
+import { css, CodeCard } from "@codeponder/ui";
 import { CommentProps, Comments } from "./commentUI";
 
 import {
@@ -31,9 +30,10 @@ interface loadingCodeState {
  * TODO: Perhaps refactor SelectLinesMouse as a 'sub function' of SelectLines?
  * Or the two in a more general utils?
  */
-const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
+// const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
+const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
   let offset = 0;
-  const styles = prop.findCodeReviewQuestions.reduce((total, current) => {
+  const styles = prop.reduce((total, current) => {
     const { startingLineNum, endingLineNum, numReplies } = current;
     total += `
      & .token-line:nth-child(n+${startingLineNum +
@@ -84,14 +84,12 @@ const getCommentsForFile = (
   }, {});
 };
 
-const setIsHovered = (
-  { target: elm, currentTarget: current }: any,
-  showButton: boolean
-) => {
+const setIsHovered = ({ target: elm, currentTarget: current, type }: any) => {
+  let showButton = type == "mouseover";
   while (elm && elm != current && !elm.classList.contains("token-line")) {
-    // hide the button when user hover over commets or line-number
+    // hide the button when user hover over comments or line-number
     const name = elm.classList[0];
-    if (name && name.match(/CommentBoxContainer|line-number/)) {
+    if (name && name.match(/CommentBoxContainer|line-number|code-content/)) {
       showButton = false;
     }
     elm = elm.parentNode || null;
@@ -107,77 +105,6 @@ const setIsHovered = (
     }
   }
 };
-
-// TODO : move to ui, check if i can move also the import "prismjs/themes/prism-coy.css";
-const Pre = styled.pre`
-  & code[class*="language-"] {
-    padding-left: 0;
-    overflow: hidden;
-  }
-
-  & .line-number {
-    border-right: 1px solid #999;
-    color: #999;
-    cursor: pointer;
-    display: inline-block;
-    letter-spacing: -1px;
-    margin-right: 0.65em;
-    padding-right: 0.8em;
-    text-align: right;
-    user-select: none;
-    width: 3em;
-
-    &.comment {
-      cursor: default;
-    }
-  }
-
-  & .btn-open-edit {
-    appearance: none;
-    border: none;
-    text-align: center;
-    text-transform: uppercase;
-    font-weight: 500;
-    cursor: pointer;
-
-    /* primary */
-    background-color: #6dc1fd;
-    color: #ffffff;
-    font-size: 1.4rem;
-    padding: 0.8rem 1rem;
-    text-transform: uppercase;
-    border-radius: 0.4rem;
-
-    margin: -2px 0px -2px -20px;
-    padding: 0;
-    width: 22px;
-    height: 22px;
-    transform: scale(0.8);
-    transition: transform 0.1s ease-in-out;
-
-    &.hidden {
-      opacity: 0;
-    }
-
-    &:hover {
-      transform: scale(1);
-      opacity: 1;
-    }
-
-    &.is-hovered {
-      opacity: 1;
-    }
-
-    & svg {
-      display: inline-block;
-      fill: currentColor;
-      vertical-align: text-top;
-      pointer-events: none;
-    }
-  }
-
-  ${(p: { selectedLines: SimpleInterpolation }) => p.selectedLines}
-`;
 
 const PLUSBUTTON = `<button variant="primary" class="btn-open-edit hidden">
     <svg viewBox="0 0 12 16" version="1.1" width="12" height="16"
@@ -231,30 +158,25 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
         const comments = getCommentsForFile(data, owner);
 
         return (
-          <Pre className={`language-${lang}`} selectedLines={SelectLines(data)}>
-            <code
-              className={`code-content language-${lang}`}
-              onMouseOut={(e: any): void => {
-                setIsHovered(e, false);
-              }}
-              onMouseOver={(e: any): void => {
-                setIsHovered(e, true);
-              }}
-            >
-              {highlightedCode.map((line, index) => (
-                <CommentsForRow
-                  key={index}
-                  code={code || ""}
-                  comments={comments[index + 1]}
-                  lang={lang}
-                  line={line}
-                  owner={owner}
-                  rowNum={index + 1}
-                  {...variables}
-                />
-              ))}
-            </code>
-          </Pre>
+          <CodeCard
+            lang={lang}
+            selectedLines={SelectLines(data.findCodeReviewQuestions)}
+            onMouseOut={setIsHovered}
+            onMouseOver={setIsHovered}
+          >
+            {highlightedCode.map((line, index) => (
+              <RenderLine
+                key={index}
+                code={code || ""}
+                comments={comments[index + 1]}
+                lang={lang}
+                line={line}
+                lineNum={index + 1}
+                owner={owner}
+                {...variables}
+              />
+            ))}
+          </CodeCard>
         );
       }}
     </FindCodeReviewQuestionsComponent>
