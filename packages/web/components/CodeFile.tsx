@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from "react";
-import Prism from "prismjs/components/prism-core";
 import "prismjs/themes/prism-coy.css";
 import { styled, css, SimpleInterpolation } from "@codeponder/ui";
 import { CommentProps, Comments } from "./commentUI";
@@ -11,7 +10,7 @@ import {
   QuestionReplyInfoFragment,
 } from "./apollo-components";
 import { filenameToLang } from "../utils/filenameToLang";
-import { loadLanguage } from "../utils/loadLanguage";
+import { getHighlightedCode } from "../utils/highlightCode";
 import { CommentsForRow } from "./CommentsForRow";
 
 interface Props {
@@ -180,128 +179,55 @@ const Pre = styled.pre`
   ${(p: { selectedLines: SimpleInterpolation }) => p.selectedLines}
 `;
 
-// TODO: move to loadLanguage.ts in utils - rename it to prsimUtils.ts
-// prism-react-renderer
-// const getTokenProps = ({
-//   key,
-//   className,
-//   style,
-//   token,
-//   ...rest
-// }: TokenInputProps): string => {
-//   const types = token.types.join(" ");
-//   if (types == "plain") {
-//     return token.content;
-//   }
+const PLUSBUTTON = `<button variant="primary" class="btn-open-edit hidden">
+    <svg viewBox="0 0 12 16" version="1.1" width="12" height="16"
+      aria-hidden="true" preserveAspectRatio="xMaxYMax meet">
+      <path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path>
+    </svg>
+  </button>`;
 
-//   const output = {
-//     ...rest,
-//     class: `token ${types}`,
-//   };
-
-//   if (style !== undefined) {
-//     output.style =
-//       output.style !== undefined ? { ...output.style, ...style } : style;
-//   }
-
-//   if (key !== undefined) output.key = key;
-//   if (className) output.class += ` ${className}`;
-
-//   const stringOutput = Object.entries(output)
-//     .map(([key, val]) => `${key}="${val}"`)
-//     .join(" ");
-
-//   return `<span ${stringOutput}>${token.content}</span>`;
-// };
-
-const PlusButton =
-  '<button variant = "primary" class="btn-open-edit hidden"><svg viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true" preserveAspectRatio="xMaxYMax meet"><path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path></svg></button>';
-
-const onPrismWrap = (env: any) => {
-  console.log("wrap", env);
-};
-
-const getHighlightCode = async (code: string, lang: string) => {
-  // const allHooks = Prism.hooks.all;
-  // if (!Prism.hooks.all["wrap"].includes(onPrismWrap)) {
-  //   Prism.hooks.add("wrap", onPrismWrap);
-  //   console.log("add wrap hook");
-  // } else {
-  //   console.log("wrap hook already exist");
-  // }
-
-  let grammar = Prism.languages[lang];
-  if (grammar === undefined) {
-    await loadLanguage(lang);
-    grammar = Prism.languages[lang];
-  }
-  const mixedTokens =
-    grammar !== undefined ? Prism.tokenize(code, grammar) : [code];
-
-  const encoded = Prism.util.encode(mixedTokens);
-  // console.log({ encoded });
-  const stringify = Prism.Token.stringify(
-    encoded,
-    lang as Prism.LanguageDefinition,
-    {} as HTMLPreElement
-  );
-  // console.log({ stringify });
-  // console.log({ splited_stringify: stringify.split("\n") });
-
-  // const normalize: Token[][] = normalizeTokens(mixedTokens as any);
-  // return normalize.map((line, rowNum) => {
-  //   const children = line
-  //     .map((token, key) => getTokenProps({ token, key }))
-  //     .join("");
-  //   return `<span class="line-number">${rowNum +
-  //     1}</span>${PlusButton}${children}`;
-  // });
-
-  return stringify.split("\n").map((line, rowNum) => {
-    return `<span class="line-number">${rowNum + 1}</span>${PlusButton}${line}`;
-  });
-};
-
-const useLoadLanguage = (lang: string, code: string) => {
+const useHighlight = (lang: string, code: string) => {
   const hasLoadedLanguage = useRef(false);
-  const [loadingCode, setLoadingCode] = useState<loadingCodeState>({
+  const [highlightCode, setHighlightCode] = useState<loadingCodeState>({
     pending: true,
   });
 
   useEffect(() => {
     if (!hasLoadedLanguage.current) {
-      getHighlightCode(code, lang).then(tokens => {
+      getHighlightedCode(code, lang).then(highlightedCode => {
         hasLoadedLanguage.current = true;
-        setLoadingCode({ pending: false, resolved: tokens });
+        const PlusButton = PLUSBUTTON.split("\n")
+          .map(item => item.trim())
+          .join("");
+        const tokens = highlightedCode.split("\n").map((line, rowNum) => {
+          return `<span class="line-number">${rowNum +
+            1}</span>${PlusButton}${line}`;
+        });
+
+        setHighlightCode({ pending: false, resolved: tokens });
       });
     }
   }, []);
-  return loadingCode;
+  return highlightCode;
 };
 
-export const CodeFile: React.SFC<Props> = ({ code, path, postId, owner }) => {
+export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
   const lang = path ? filenameToLang(path) : "";
-  const loadingCode = useLoadLanguage(lang, code || "");
+  const highlightCode = useHighlight(lang, code || "");
 
   const variables = {
     path,
     postId,
   };
 
-  /**
-   ***************************************
-   * try to use lazy loading for bug files
-   *
-   */
-
   return (
     <FindCodeReviewQuestionsComponent variables={variables}>
       {({ data, loading }) => {
-        if (!data || loading || loadingCode.pending) {
+        if (!data || loading || highlightCode.pending) {
           return null;
         }
 
-        const highlightedCode = loadingCode.resolved!;
+        const highlightedCode = highlightCode.resolved!;
         const comments = getCommentsForFile(data, owner);
 
         return (
