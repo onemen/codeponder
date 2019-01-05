@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useContext, useRef, useState, useEffect } from "react";
 import { css, CodeCard } from "@codeponder/ui";
 import { CommentProps, Comments } from "./commentUI";
 
@@ -8,17 +8,10 @@ import {
   CodeReviewQuestionInfoFragment,
   QuestionReplyInfoFragment,
 } from "./apollo-components";
-import { filenameToLang } from "../utils/filenameToLang";
 import { getHighlightedCode } from "../utils/highlightCode";
 import { RenderLine } from "./CodeLine";
 import { FixedSizeList as List } from "react-window";
-
-interface Props {
-  owner: string;
-  code: string | null;
-  path?: string;
-  postId: string;
-}
+import { CodeFileContext } from "./CodeFileContext";
 
 interface loadingCodeState {
   pending: boolean;
@@ -31,7 +24,6 @@ interface loadingCodeState {
  * TODO: Perhaps refactor SelectLinesMouse as a 'sub function' of SelectLines?
  * Or the two in a more general utils?
  */
-// const SelectLines = (prop: FindCodeReviewQuestionsQuery) => {
 const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
   let offset = 0;
   const styles = prop.reduce((total, current) => {
@@ -121,6 +113,7 @@ const useHighlight = (lang: string, code: string) => {
   });
 
   useEffect(() => {
+    const time = Date.now();
     if (!hasLoadedLanguage.current) {
       getHighlightedCode(code, lang).then(highlightedCode => {
         hasLoadedLanguage.current = true;
@@ -132,6 +125,8 @@ const useHighlight = (lang: string, code: string) => {
             1}</span>${PlusButton}${line}`;
         });
 
+        const time1 = Date.now();
+        console.log("Highlight time", time1 - time);
         setHighlightCode({ pending: false, resolved: tokens });
       });
     }
@@ -139,11 +134,11 @@ const useHighlight = (lang: string, code: string) => {
   return highlightCode;
 };
 
-export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
+export const CodeFile: React.FC = () => {
+  const { code, lang, owner, path, postId } = useContext(CodeFileContext);
   const codeRef = useRef<HTMLPreElement>(null);
-  const lang = path ? filenameToLang(path) : "";
   const highlightCode = useHighlight(lang, code || "");
-
+  const [renderedAll, setRenderedAll] = useState(false);
   const variables = {
     path,
     postId,
@@ -158,6 +153,21 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
   //   },
   //   [highlightCode]
   // );
+
+  const time = Date.now();
+  useEffect(() => {
+    const time1 = Date.now();
+    console.log("render time", time1 - time);
+
+    if (
+      !renderedAll &&
+      !highlightCode.pending &&
+      highlightCode.resolved!.length > 500
+    ) {
+      console.log("setRenderedAll");
+      setRenderedAll(true);
+    }
+  });
 
   return (
     <FindCodeReviewQuestionsComponent variables={variables}>
@@ -181,6 +191,74 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
         const rowInPage = 20;
 
         // console.log("in component", codeRef, highlightCode);
+        console.log("lines", highlightedCode.length);
+
+        if (highlightedCode.length > 5000) {
+          // return (
+          //   <CodeCard
+          //     lang={lang}
+          //     selectedLines={SelectLines(data.findCodeReviewQuestions)}
+          //     onMouseOut={setIsHovered}
+          //     onMouseOver={setIsHovered}
+          //   >
+          //     {highlightedCode.slice(0, 500).map((line, index) => (
+          //       <RenderLine
+          //         key={index}
+          //         comments={comments[index + 1]}
+          //         line={line}
+          //         lineNum={index + 1}
+          //       />
+          //     ))}
+          //     {renderedAll &&
+          //       highlightedCode
+          //         .slice(500)
+          //         .map((line, index) => (
+          //           <RenderLine
+          //             key={500 + index}
+          //             comments={comments[500 + index + 1]}
+          //             line={line}
+          //             lineNum={500 + index + 1}
+          //           />
+          //         ))}
+          //     }
+          //   </CodeCard>
+          // );
+
+          const html1 = highlightedCode
+            .slice(0, 500)
+            .map((line: string) => `<div class="token-line">${line}</div>`)
+            .join("");
+          const html2 = highlightedCode
+            .slice(500)
+            .map((line: string) => `<div class="token-line">${line}</div>`)
+            .join("");
+          return (
+            <>
+              <CodeCard
+                key={1}
+                codeRef={codeRef}
+                lang={lang}
+                selectedLines={SelectLines(data.findCodeReviewQuestions)}
+                onMouseOut={setIsHovered}
+                onMouseOver={setIsHovered}
+              >
+                {<div dangerouslySetInnerHTML={{ __html: html1 }} />}
+              </CodeCard>
+              {renderedAll && (
+                <CodeCard
+                  key={2}
+                  codeRef={codeRef}
+                  lang={lang}
+                  selectedLines={SelectLines(data.findCodeReviewQuestions)}
+                  onMouseOut={setIsHovered}
+                  onMouseOver={setIsHovered}
+                >
+                  {<div dangerouslySetInnerHTML={{ __html: html2 }} />}
+                </CodeCard>
+              )}
+            </>
+          );
+        }
 
         return (
           <CodeCard
@@ -191,7 +269,7 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
             onMouseOver={setIsHovered}
           >
             <List
-              itemData={highlightedCode}
+              itemData={{ code: highlightedCode, comments }}
               height={rowInPage * rowHeight}
               itemCount={highlightedCode.length}
               itemSize={rowHeight}
@@ -204,7 +282,6 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
           </CodeCard>
         );
 
-        //
         // return (
         //   <CodeCard
         //     lang={lang}
@@ -215,13 +292,9 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
         //     {highlightedCode.map((line, index) => (
         //       <RenderLine
         //         key={index}
-        //         code={code || ""}
         //         comments={comments[index + 1]}
-        //         lang={lang}
         //         line={line}
         //         lineNum={index + 1}
-        //         owner={owner}
-        //         {...variables}
         //       />
         //     ))}
         //   </CodeCard>
@@ -231,13 +304,26 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
   );
 };
 
+// const Row = ({ data, index, style }: any) => {
+//   return (
+//     <div
+//       style={style}
+//       className="token-line"
+//       key={index}
+//       dangerouslySetInnerHTML={{ __html: data[index] }}
+//     />
+//   );
+// };
+
 const Row = ({ data, index, style }: any) => {
   return (
-    <div
-      style={style}
-      className="token-line"
-      key={index}
-      dangerouslySetInnerHTML={{ __html: data[index] }}
-    />
+    <div style={style}>
+      <RenderLine
+        key={index}
+        comments={data.comments[index + 1]}
+        line={data.code[index]}
+        lineNum={index + 1}
+      />
+    </div>
   );
 };
