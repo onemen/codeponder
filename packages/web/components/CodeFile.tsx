@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { css, CodeCard } from "@codeponder/ui";
 import { CommentProps, Comments } from "./commentUI";
 
@@ -11,6 +11,7 @@ import {
 import { filenameToLang } from "../utils/filenameToLang";
 import { getHighlightedCode } from "../utils/highlightCode";
 import { RenderLine } from "./CodeLine";
+import { FixedSizeList as List } from "react-window";
 
 interface Props {
   owner: string;
@@ -139,6 +140,7 @@ const useHighlight = (lang: string, code: string) => {
 };
 
 export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
+  const codeRef = useRef<HTMLPreElement>(null);
   const lang = path ? filenameToLang(path) : "";
   const highlightCode = useHighlight(lang, code || "");
 
@@ -146,6 +148,16 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
     path,
     postId,
   };
+
+  // useEffect(
+  //   () => {
+  //     if (!highlightCode.pending) {
+  //       const elm = codeRef.current!;
+  //       console.log(elm, highlightCode);
+  //     }
+  //   },
+  //   [highlightCode]
+  // );
 
   return (
     <FindCodeReviewQuestionsComponent variables={variables}>
@@ -157,28 +169,75 @@ export const CodeFile: React.FC<Props> = ({ code, path, postId, owner }) => {
         const highlightedCode = highlightCode.resolved!;
         const comments = getCommentsForFile(data, owner);
 
+        /*         const list = highlightedCode.map((code, index) => (
+          <div
+            className="token-line"
+            key={index}
+            dangerouslySetInnerHTML={{ __html: code }}
+          />
+        )); */
+
+        const rowHeight = 21;
+        const rowInPage = 20;
+
+        // console.log("in component", codeRef, highlightCode);
+
         return (
           <CodeCard
+            codeRef={codeRef}
             lang={lang}
             selectedLines={SelectLines(data.findCodeReviewQuestions)}
             onMouseOut={setIsHovered}
             onMouseOver={setIsHovered}
           >
-            {highlightedCode.map((line, index) => (
-              <RenderLine
-                key={index}
-                code={code || ""}
-                comments={comments[index + 1]}
-                lang={lang}
-                line={line}
-                lineNum={index + 1}
-                owner={owner}
-                {...variables}
-              />
-            ))}
+            <List
+              itemData={highlightedCode}
+              height={rowInPage * rowHeight}
+              itemCount={highlightedCode.length}
+              itemSize={rowHeight}
+              width={900}
+              overscanCount={3}
+              useIsScrolling={false}
+            >
+              {Row}
+            </List>
           </CodeCard>
         );
+
+        //
+        // return (
+        //   <CodeCard
+        //     lang={lang}
+        //     selectedLines={SelectLines(data.findCodeReviewQuestions)}
+        //     onMouseOut={setIsHovered}
+        //     onMouseOver={setIsHovered}
+        //   >
+        //     {highlightedCode.map((line, index) => (
+        //       <RenderLine
+        //         key={index}
+        //         code={code || ""}
+        //         comments={comments[index + 1]}
+        //         lang={lang}
+        //         line={line}
+        //         lineNum={index + 1}
+        //         owner={owner}
+        //         {...variables}
+        //       />
+        //     ))}
+        //   </CodeCard>
+        // );
       }}
     </FindCodeReviewQuestionsComponent>
+  );
+};
+
+const Row = ({ data, index, style }: any) => {
+  return (
+    <div
+      style={style}
+      className="token-line"
+      key={index}
+      dangerouslySetInnerHTML={{ __html: data[index] }}
+    />
   );
 };

@@ -6,7 +6,7 @@ import styled, {
 import "prismjs/themes/prism-coy.css";
 
 interface Props extends React.HTMLAttributes<HTMLPreElement> {
-  fontSize?: number;
+  codeRef?: React.RefObject<HTMLPreElement>;
   lang: string;
   selectedLines: FlattenSimpleInterpolation;
 }
@@ -89,11 +89,12 @@ const Pre = styled.pre`
 `;
 
 export const CodeCard: React.FunctionComponent<Props> = ({
+  codeRef,
   lang,
   children,
   ...props
 }) => (
-  <Pre className={`language-${lang}`} {...props}>
+  <Pre ref={codeRef} className={`language-${lang}`} {...props}>
     <code className={`code-content language-${lang}`}>{children}</code>
   </Pre>
 );
