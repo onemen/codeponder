@@ -2,15 +2,6 @@
 
 import { MyButton, styled } from "@codeponder/ui";
 
-export const getBorderColor = (type: string) => {
-  const colors: { [key: string]: string } = {
-    question: "rgb(238, 238, 88)",
-    reply: "rgb(235, 73, 144)",
-    editor: "rgb(0, 238, 88)",
-  };
-  return colors[type];
-};
-
 export const CommentBoxContainer = styled.div`
   background-color: #fff;
 
@@ -71,10 +62,9 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
   username,
   text,
   isOwner,
-  type,
   onOpenEditor,
 }) => (
-  <CommentBoxContainer color={getBorderColor(type)}>
+  <CommentBoxContainer>
     <div className="comment-inner-box">
       <div className="comment-title">
         <span className="comment-creator">{username}</span>
@@ -101,7 +91,7 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
 export const wrapEditor = (ChildComponent: (props: any) => JSX.Element) => (
   props: any
 ) => (
-  <CommentBoxContainer color={getBorderColor("editor")}>
+  <CommentBoxContainer>
     <div className="comment-inner-box">
       <ChildComponent {...props} />
     </div>
