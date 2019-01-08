@@ -15,15 +15,14 @@ export const CommentBoxContainer = styled.div`
   background-color: #fff;
 
   & .comment-inner-box {
-    border: 1px solid #999;
-    border-left: 10px solid
-      ${(p: { color?: string }) => p.color || getBorderColor("question")};
-    margin: 4px 0;
+    border: 1px solid #d1d5da;
+    border-radius: 3px;
+    margin: 10px;
   }
 
   & .comment-title {
     align-items: center;
-    border-bottom: 1px solid #999;
+    border-bottom: 1px solid #d1d5da;
     display: flex;
     padding: 0.5em;
   }

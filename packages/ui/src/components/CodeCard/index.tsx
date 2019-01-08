@@ -19,25 +19,35 @@ interface styleProps {
 const Pre = styled.pre`
   font-size: ${(p: styleProps) => p.fontSize || 14}px;
 
-  & code[class*="language-"] {
-    padding-left: 0;
+  & .code-content {
+    /* override prism-coy border */
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 16px;
+    margin-top: 16px;
     overflow: hidden;
+    padding: 0;
   }
 
   & .line-number {
     color: #999;
     cursor: pointer;
-    display: inline-block;
-    letter-spacing: -1px;
-    margin-right: 0.65em;
-    padding-right: 0.8em;
+    padding-left: 10px;
+    padding-right: 10px;
     text-align: right;
     user-select: none;
-    width: 3em;
+    min-width: 50px;
+    width: 1%;
 
     &::before {
       content: attr(data-line-number);
     }
+  }
+
+  & .token-line {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   & .btn-open-edit {
@@ -85,6 +95,10 @@ const Pre = styled.pre`
   }
 
   ${(p: styleProps) => p.selectedLines}
+
+  & table {
+    width: 100%;
+  }
 `;
 
 export const CodeCard: React.FunctionComponent<Props> = ({

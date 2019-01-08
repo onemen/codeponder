@@ -79,29 +79,48 @@ export const RenderLine: React.FC<RenderLineProps> = ({
           onClick={onOpenEditor}
         />
       </tr>
-      {commentsForRow.length > 0 && (
+      {(showEditor || commentsForRow.length > 0) && (
         <tr>
-          <td />
-          <td style={{ border: "1px solid rgba(0,0,0,0.6)" }}>
-            <div style={{ marginTop: "4px", textAlign: "right" }}>
-              <button>Add Reply ↓</button>
-              <button>View ▾</button>
+          {/* <td /> */}
+          <td
+            style={{
+              borderTop: "1px solid #e1e4e8",
+              borderBottom: "1px solid #e1e4e8",
+              padding: "0.75em",
+            }}
+            colSpan={2}
+          >
+            <div
+              style={{
+                border: "1px solid #dfe2e5",
+                borderRadius: "3px",
+              }}
+            >
+              {commentsForRow.length > 0 && (
+                <div
+                  style={{
+                    backgroundColor: "#f6f8fa",
+                    border: "1px solid #e1e4e8",
+                    borderRadius: "3px 3px 0 0",
+                    padding: "10px",
+                    textAlign: "right",
+                  }}
+                >
+                  <button style={{ padding: "0.5em" }}>Add Reply ↓</button>
+                  <button style={{ padding: "0.5em" }}>View ▾</button>
+                </div>
+              )}
+              {commentsForRow.map((comment, key) => {
+                return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+              }) || null}
+              {showEditor && (
+                <AddComment
+                  comments={commentsForRow}
+                  line={lineNum}
+                  onEditorSubmit={onEditorSubmit}
+                />
+              )}
             </div>
-            {commentsForRow.map((comment, key) => {
-              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-            }) || null}
-          </td>
-        </tr>
-      )}
-      {showEditor && (
-        <tr>
-          <td className="line-number" />
-          <td>
-            <AddComment
-              comments={commentsForRow}
-              line={lineNum}
-              onEditorSubmit={onEditorSubmit}
-            />
           </td>
         </tr>
       )}
