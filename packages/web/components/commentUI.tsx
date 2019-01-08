@@ -8,7 +8,7 @@ export const CommentBoxContainer = styled.div`
   & .comment-inner-box {
     border: 1px solid #d1d5da;
     border-radius: 3px;
-    margin: 10px;
+    margin: 0.652em;
   }
 
   & .comment-title {
@@ -83,17 +83,6 @@ export const CommentBox: React.SFC<CommentFunctionProps> = ({
           "Lorem ipsum dolor sit amet consectetur adipisicing elit. Est consequuntur modi quas alias placeat aliquam vitae explicabo magni saepe commodi. Corporis ullam ratione fugit optio tempore provident voluptates commodi quasi!"
         }
       </p>
-    </div>
-  </CommentBoxContainer>
-);
-
-// TODO: fix type definition
-export const wrapEditor = (ChildComponent: (props: any) => JSX.Element) => (
-  props: any
-) => (
-  <CommentBoxContainer>
-    <div className="comment-inner-box">
-      <ChildComponent {...props} />
     </div>
   </CommentBoxContainer>
 );

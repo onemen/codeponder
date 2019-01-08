@@ -24,8 +24,8 @@ const Pre = styled.pre`
     border: 1px solid #ddd;
     border-radius: 3px;
     box-shadow: none;
-    margin-bottom: 16px;
-    margin-top: 16px;
+    margin-bottom: 1em;
+    margin-top: 1em;
     overflow: hidden;
     padding: 0;
   }
@@ -33,11 +33,11 @@ const Pre = styled.pre`
   & .line-number {
     color: #999;
     cursor: pointer;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 0.625em;
+    padding-right: 0.625em;
     text-align: right;
     user-select: none;
-    min-width: 50px;
+    min-width: 3em;
     width: 1%;
 
     &::before {
@@ -46,8 +46,8 @@ const Pre = styled.pre`
   }
 
   & .token-line {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 0.625em;
+    padding-right: 0.625em;
   }
 
   & .btn-open-edit {

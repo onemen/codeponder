@@ -1,7 +1,6 @@
 import { useInputValue } from "../utils/useInputValue";
 import { CreateQuestionReplyComponent } from "./apollo-components";
-import { TextEditorResult, TextEditor } from "./CommentForm";
-import { wrapEditor } from "./commentUI";
+import { TextEditor, TextEditorResult } from "./CommentForm";
 
 interface Props {
   questionId: string;
@@ -43,8 +42,6 @@ interface QuestionReplyProps {
   questionId: string;
 }
 
-const WrappedTextEditor = wrapEditor(TextEditor);
-
 export const CreateQuestionReply = ({
   questionId,
   onEditorSubmit,
@@ -77,7 +74,7 @@ export const CreateQuestionReply = ({
           onEditorSubmit({ submitted: false });
         }
       };
-      return <WrappedTextEditor {...{ ...props, submitForm }} />;
+      return <TextEditor {...{ ...props, submitForm, type: "reply" }} />;
     }}
   </CreateQuestionReplyComponent>
 );
