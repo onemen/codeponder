@@ -71,21 +71,39 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   return (
     <>
-      <div
-        key={lineNum}
-        className="token-line"
-        dangerouslySetInnerHTML={{ __html: line }}
-        onClick={onOpenEditor}
-      />
-      {commentsForRow.map((comment, key) => {
-        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-      }) || null}
-      {showEditor && (
-        <AddComment
-          comments={commentsForRow}
-          line={lineNum}
-          onEditorSubmit={onEditorSubmit}
+      <tr key={lineNum}>
+        <td className="line-number" data-line-number={lineNum} />
+        <td
+          className="token-line"
+          dangerouslySetInnerHTML={{ __html: line }}
+          onClick={onOpenEditor}
         />
+      </tr>
+      {commentsForRow.length > 0 && (
+        <tr>
+          <td />
+          <td style={{ border: "1px solid rgba(0,0,0,0.6)" }}>
+            <div style={{ marginTop: "4px", textAlign: "right" }}>
+              <button>Add Reply ↓</button>
+              <button>View ▾</button>
+            </div>
+            {commentsForRow.map((comment, key) => {
+              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+            }) || null}
+          </td>
+        </tr>
+      )}
+      {showEditor && (
+        <tr>
+          <td className="line-number" />
+          <td>
+            <AddComment
+              comments={commentsForRow}
+              line={lineNum}
+              onEditorSubmit={onEditorSubmit}
+            />
+          </td>
+        </tr>
       )}
     </>
   );

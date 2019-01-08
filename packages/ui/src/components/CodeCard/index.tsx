@@ -25,7 +25,6 @@ const Pre = styled.pre`
   }
 
   & .line-number {
-    border-right: 1px solid #999;
     color: #999;
     cursor: pointer;
     display: inline-block;
@@ -36,8 +35,8 @@ const Pre = styled.pre`
     user-select: none;
     width: 3em;
 
-    &.comment {
-      cursor: default;
+    &::before {
+      content: attr(data-line-number);
     }
   }
 
@@ -94,6 +93,10 @@ export const CodeCard: React.FunctionComponent<Props> = ({
   ...props
 }) => (
   <Pre className={`language-${lang}`} {...props}>
-    <code className={`code-content language-${lang}`}>{children}</code>
+    <code className={`code-content language-${lang}`}>
+      <table>
+        <tbody>{children}</tbody>
+      </table>
+    </code>
   </Pre>
 );

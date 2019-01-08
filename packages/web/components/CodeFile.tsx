@@ -93,7 +93,7 @@ const setIsHovered = ({ target: elm, currentTarget: current, type }: any) => {
         button.classList.toggle("is-hovered", false)
       );
     if (showButton) {
-      elm.childNodes[1].classList.add("is-hovered");
+      elm.childNodes[0].classList.add("is-hovered");
     }
   }
 };
@@ -118,9 +118,8 @@ const useHighlight = (lang: string, code: string) => {
         const PlusButton = PLUSBUTTON.split("\n")
           .map(item => item.trim())
           .join("");
-        const tokens = highlightedCode.split("\n").map((line, lineNum) => {
-          return `<span class="line-number">${lineNum +
-            1}</span>${PlusButton}${line}`;
+        const tokens = highlightedCode.split("\n").map(line => {
+          return `${PlusButton}${line}`;
         });
 
         setHighlightCode({ pending: false, resolved: tokens });

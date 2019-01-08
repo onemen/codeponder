@@ -91,8 +91,15 @@ export const TextEditor = (props: TextEditorProps) => {
     }
   }, []);
 
+  // close editor with Esc if user did not start editing
+  const onKeyDown = ({ keyCode }: any) => {
+    if (keyCode == 27 && !textTrimmed) {
+      submitForm({ cancel: true });
+    }
+  };
+
   return (
-    <Container ref={codeRef}>
+    <Container ref={codeRef} onKeyDown={onKeyDown}>
       <div className="code-snippet">
         <strong>Code Snippet</strong>
         <label>
