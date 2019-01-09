@@ -76,11 +76,16 @@ export interface TextEditorResult {
   text: string;
 }
 
+interface CodeElement extends Element {
+  setStartingLineNum: (val?: number) => void;
+}
+
 export const TextEditor = (props: TextEditorProps) => {
   const { isReplay, startingLineNum, endingLineNum, submitForm, type } = props;
 
   const formRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const startingLineRef = useRef<HTMLInputElement>(null);
 
   const [title, titleChange] = useInputValue("");
   const [start, startingLineNumChange] = useInputValue(
@@ -93,10 +98,60 @@ export const TextEditor = (props: TextEditorProps) => {
   const textTrimmed = (() => text.trim())();
   const isValidForm = titleTrimmed && textTrimmed;
 
-  // focus title
+  // focus title / textarea
   useEffect(() => {
     if (inputRef) {
       inputRef.current!.focus();
+    }
+  }, []);
+
+  // highlight selected lines
+  useEffect(() => {
+    const parentElm: CodeElement | null = document.querySelector(
+      ".code-content"
+    );
+    if (startingLineRef.current && parentElm) {
+      const onMouseDown = () => {
+        // console.log("onMouseDown");
+        // const list: NodeListOf<HTMLTableCellElement> = parentElm.querySelectorAll(
+        //   ".is-hovered"
+        // );
+        // list.forEach(td => td.classList.toggle("is-hovered", false));
+      };
+      const onFocus = () => {
+        // console.log("onFocus", { startingLineNum, endingLineNum, parentElm });
+        startingLineRef.current!.addEventListener("blur", onBlur);
+        parentElm.classList.add("js-select-line");
+        // parentElm.setAttribute("data-ending-line-num", end);
+        parentElm.setAttribute("data-selected-range", `${start}-${end}`);
+
+        /*         const numberElm: HTMLElement | null = parentElm.querySelector(
+          `[data-line-number="${end}"]`
+        );
+        if (numberElm && numberElm.parentNode) {
+          const f = numberElm.parentNode;
+          numberElm.parentNode.classList.add("is-selected");
+        } */
+
+        parentElm.setStartingLineNum = (val?: number) => {
+          startingLineNumChange({ currentTarget: { value: val } });
+        };
+        parentElm.addEventListener("mousedown", onMouseDown);
+      };
+      const onBlur = () => {
+        // console.log("onBlur", { startingLineNum, endingLineNum });
+        startingLineRef.current!.removeEventListener("blur", onBlur);
+        parentElm.classList.remove("js-select-line");
+        // parentElm.removeAttribute("data-ending-line-num");
+        parentElm.removeAttribute("data-selected-range");
+        parentElm.setStartingLineNum = () => {};
+        parentElm.removeEventListener("mousedown", onMouseDown);
+      };
+      startingLineRef.current!.addEventListener("focus", onFocus);
+      return () => {
+        startingLineRef.current!.removeEventListener("focus", onFocus);
+        onBlur();
+      };
     }
   }, []);
 
@@ -134,6 +189,7 @@ export const TextEditor = (props: TextEditorProps) => {
             <FormRow>
               <Label style={{ paddingBottom: ".4rem" }}>Line numbers</Label>
               <FormInput
+                ref={startingLineRef}
                 disabled={isReplay}
                 name="startingLineNum"
                 min="1"

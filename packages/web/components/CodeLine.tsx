@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AddComment } from "./CommentSection";
 import { CommentProps, CommentBox } from "./commentUI";
 import { getScrollY } from "../utils/domScrollUtils";
@@ -15,6 +15,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   line,
   lineNum,
 }) => {
+  const lineRef = useRef<HTMLTableRowElement>(null);
   const { owner } = useContext(CodeFileContext);
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
@@ -36,7 +37,17 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       scrollPosition = getScrollY();
       setCommentsForRow([...commentsForRow, data]);
     }
-    setShowEditor(false);
+    toggleShowEditor(false, submitted);
+  };
+
+  // show select line background on current line
+  const toggleShowEditor = (show: boolean, submitted: boolean) => {
+    if ((show && commentsForRow.length == 0) || submitted) {
+      lineRef.current!.classList.add("is-selected");
+    } else {
+      lineRef.current!.classList.remove("is-selected");
+    }
+    setShowEditor(show);
   };
 
   useEffect(
@@ -65,23 +76,18 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       elm.classList.contains("btn-open-edit") ||
       elm.classList.contains("btn-reply")
     ) {
-      setShowEditor(true);
+      toggleShowEditor(true);
     }
   }, []);
 
   return (
     <>
-      <tr key={lineNum}>
+      <tr ref={lineRef} key={lineNum} className="token-line">
         <td className="line-number" data-line-number={lineNum} />
-        <td
-          className="token-line"
-          dangerouslySetInnerHTML={{ __html: line }}
-          onClick={onOpenEditor}
-        />
+        <td dangerouslySetInnerHTML={{ __html: line }} onClick={onOpenEditor} />
       </tr>
       {(showEditor || commentsForRow.length > 0) && (
-        <tr>
-          {/* <td /> */}
+        <tr className="comments-row">
           <td
             style={{
               borderTop: "1px solid #e1e4e8",

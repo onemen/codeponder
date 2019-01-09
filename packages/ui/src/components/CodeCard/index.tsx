@@ -19,7 +19,7 @@ interface styleProps {
 const Pre = styled.pre`
   font-size: ${(p: styleProps) => p.fontSize || 14}px;
 
-  & .code-content {
+  &.code-content code[class*="language-"] {
     /* override prism-coy border */
     border: 1px solid #ddd;
     border-radius: 3px;
@@ -48,6 +48,15 @@ const Pre = styled.pre`
   & .token-line {
     padding-left: 0.625em;
     padding-right: 0.625em;
+
+    &.is-selected {
+      background: hsla(24, 20%, 50%, 0.08);
+      background: linear-gradient(
+        to right,
+        hsla(24, 20%, 50%, 0.1) 70%,
+        hsla(24, 20%, 50%, 0)
+      );
+    }
   }
 
   & .btn-open-edit {
@@ -56,7 +65,6 @@ const Pre = styled.pre`
     text-align: center;
     text-transform: uppercase;
     font-weight: 500;
-    cursor: pointer;
 
     /* primary */
     background-color: #6dc1fd;
@@ -77,20 +85,30 @@ const Pre = styled.pre`
       opacity: 0;
     }
 
-    &:hover {
-      transform: scale(1);
-      opacity: 1;
-    }
-
-    &.is-hovered {
-      opacity: 1;
-    }
-
     & svg {
       display: inline-block;
       fill: currentColor;
       vertical-align: text-top;
       pointer-events: none;
+    }
+  }
+
+  &.js-select-line {
+    & .token-line {
+      cursor: pointer;
+    }
+  }
+
+  &:not(.js-select-line) {
+    & .token-line.is-hovered {
+      & .btn-open-edit {
+        opacity: 1;
+        cursor: pointer;
+      }
+
+      & .btn-open-edit:hover {
+        transform: scale(1);
+      }
     }
   }
 
@@ -106,8 +124,8 @@ export const CodeCard: React.FunctionComponent<Props> = ({
   children,
   ...props
 }) => (
-  <Pre className={`language-${lang}`} {...props}>
-    <code className={`code-content language-${lang}`}>
+  <Pre className={`code-content language-${lang}`} {...props}>
+    <code className={`language-${lang}`}>
       <table>
         <tbody>{children}</tbody>
       </table>

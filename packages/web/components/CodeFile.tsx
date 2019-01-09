@@ -20,8 +20,6 @@ interface loadingCodeState {
 /*
  * *Styles for the line numbers coming from the server
  *
- * TODO: Perhaps refactor SelectLinesMouse as a 'sub function' of SelectLines?
- * Or the two in a more general utils?
  */
 const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
   let offset = 0;
@@ -76,24 +74,106 @@ const getCommentsForFile = (
   }, {});
 };
 
-const setIsHovered = ({ target: elm, currentTarget: current, type }: any) => {
-  let showButton = type == "mouseover";
-  while (elm && elm != current && !elm.classList.contains("token-line")) {
-    // hide the button when user hover over comments or line-number
-    const name = elm.classList[0];
-    if (name && name.match(/CommentBoxContainer|line-number|code-content/)) {
-      showButton = false;
-    }
+const toggleClassList = (parent: Element, selector: string): void => {
+  parent
+    .querySelectorAll(`.${selector}`)
+    .forEach(elm => elm.classList.toggle(selector, false));
+};
+
+const setIsHovered = (
+  questions: CodeReviewQuestionInfoFragment[],
+  { target: elm, currentTarget: parent, type }: any
+) => {
+  // let isOverLine = type == "mouseover";
+  while (elm && elm != parent && !elm.classList.contains("token-line")) {
+    // // hide the button when user hover over comments or line-number
+    // const name = elm.classList[0];
+    // if (name && name.match(/comments-row|line-number|code-content/)) {
+    //   isOverLine = false;
+    // }
     elm = elm.parentNode || null;
   }
-  if (elm && current) {
-    current
-      .querySelectorAll(".is-hovered")
-      .forEach((button: HTMLButtonElement) =>
-        button.classList.toggle("is-hovered", false)
+  if (elm && parent) {
+    let isOverLine =
+      type == "mouseover" && elm.classList.contains("token-line");
+
+    let numberElm = elm.childNodes[0];
+    const currentLine = +numberElm.dataset.lineNumber;
+    // we only allow one question on lines range
+    if (isOverLine && questions.length > 0) {
+      isOverLine = !questions.some(
+        q => currentLine >= q.startingLineNum && currentLine <= q.endingLineNum
       );
-    if (showButton) {
-      elm.childNodes[0].classList.add("is-hovered");
+    }
+
+    // parent
+    //   .querySelectorAll(".is-hovered")
+    //   .forEach((td: HTMLTableCellElement) =>
+    //     td.classList.toggle("is-hovered", false)
+    //   );
+    // console.log(
+    //   parent.classList.contains("js-select-line"),
+    //   parent.dataset,
+    //   parent.dataset.endingLineNum,
+    //   typeof parent.dataset.endingLineNum,
+    //   elm.parentNode.dataset,
+    //   elm.parentNode.dataset.lineNumber,
+    //   typeof elm.parentNode.dataset.lineNumber
+    // );
+
+    if (parent.classList.contains("js-select-line")) {
+      if (isOverLine) {
+        // toggleClassList(parent, "is-selected");
+        // const endingLineNum = +parent.dataset.endingLineNum;
+        // // let tr = elm.parentNode;
+        // // if (+tr.childNodes[0].dataset.lineNumber <= endingLineNum) {
+        // //   parent.setStartingLineNum(+tr.childNodes[0].dataset.lineNumber);
+        // //   while (tr && +tr.childNodes[0].dataset.lineNumber <= endingLineNum) {
+        // //     tr.childNodes[1].classList.add("is-selected");
+        // //     tr = tr.nextSibling;
+        // //   }
+        // // }
+        // let numberElm = elm.previousSibling;
+        // if (+numberElm.dataset.lineNumber <= endingLineNum) {
+        //   parent.setStartingLineNum(+numberElm.dataset.lineNumber);
+        //   while (numberElm && +numberElm.dataset.lineNumber <= endingLineNum) {
+        //     numberElm.nextSibling.classList.add("is-selected");
+        //     numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+        //   }
+        // } else {
+        //   const currentLine = parent.querySelector(
+        //     `[data-line-number="${endingLineNum}"]`
+        //   );
+        //   currentLine.nextSibling.classList.add("is-selected");
+        //   // console.log(d);
+        // }
+        const selectedRange: string = parent.dataset.selectedRange;
+        const [start, end] = selectedRange.split("-").map(val => +val);
+        // let numberElm = elm.previousSibling;
+        // let numberElm = elm.childNodes[0];
+        // const currentLine = +numberElm.dataset.lineNumber;
+        // console.log(
+        //   start,
+        //   end,
+        //   currentLine,
+        //   currentLine != start && currentLine <= end
+        // );
+        // if (currentLine >= start && currentLine <= end) {
+        if (currentLine != start && currentLine <= end) {
+          toggleClassList(parent, "is-selected");
+          parent.setStartingLineNum(currentLine);
+          parent.setAttribute("data-selected-range", `${currentLine}-${end}`);
+          while (numberElm && +numberElm.dataset.lineNumber <= end) {
+            numberElm.parentNode.classList.add("is-selected");
+            numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+          }
+        }
+      }
+    } else {
+      toggleClassList(parent, "is-hovered");
+      if (isOverLine) {
+        elm.classList.add("is-hovered");
+      }
     }
   }
 };
@@ -146,13 +226,16 @@ export const CodeFile: React.FC = () => {
 
         const highlightedCode = highlightCode.resolved!;
         const comments = getCommentsForFile(data, owner);
+        const questions = data.findCodeReviewQuestions;
+
+        const onMouseOverAndOut = setIsHovered.bind(null, questions);
 
         return (
           <CodeCard
             lang={lang}
-            selectedLines={SelectLines(data.findCodeReviewQuestions)}
-            onMouseOut={setIsHovered}
-            onMouseOver={setIsHovered}
+            selectedLines={SelectLines(questions)}
+            onMouseOut={onMouseOverAndOut}
+            onMouseOver={onMouseOverAndOut}
           >
             {highlightedCode.map((line, index) => (
               <RenderLine
