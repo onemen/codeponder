@@ -63,7 +63,8 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   const onOpenEditor = useCallback(({ target: elm }: any) => {
     if (
-      elm.classList.contains("btn-open-edit") ||
+      (elm.classList.contains("btn-open-edit") &&
+        elm.parentNode.parentNode.classList.contains("is-hovered")) ||
       elm.classList.contains("btn-reply")
     ) {
       setShowEditor(true);

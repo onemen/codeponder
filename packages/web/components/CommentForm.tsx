@@ -65,9 +65,7 @@ const FormContainer = styled.div`
   /* Tooltip text */
   .start-tooltip + .tooltiptext {
     border-radius: 3px;
-    /* width: 120px; */
     background-color: #f4f6dd;
-    /* color: #fff; */
     font-size: 1em;
     padding: 0.6rem 1rem;
     position: absolute;
@@ -111,28 +109,16 @@ export const TextEditor = (props: TextEditorProps) => {
 
   const formRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const startInput = useRef<HTMLInputElement>(null);
-  const endInput = useRef<HTMLInputElement>(null);
-
   const [title, titleChange] = useInputValue("");
-  const [start, startingLineNumChange] = useInputValue(
-    startingLineNum || endingLineNum
-  );
-  const [end, endingLineNumChange] = useInputValue(endingLineNum);
   const [text, textChange] = useInputValue("");
-
   const { totalLines } = useContext(CodeFileContext);
 
   // listening to mouse move when start input is focused
   // Styles lines between start - end when start change
-  useSelectedLines(
-    startInput,
-    endInput,
-    start,
-    startingLineNumChange,
-    end,
-    view
-  );
+  const [
+    { start, startingLineNumChange, startInput },
+    { end, endingLineNumChange, endInput },
+  ] = useSelectedLines(startingLineNum, endingLineNum, view);
 
   // validate filed
   const titleTrimmed = (() => title.trim())();
@@ -205,7 +191,7 @@ export const TextEditor = (props: TextEditorProps) => {
                 onChange={startingLineNumChange}
               />
               <Label className="tooltiptext" as="span">
-                You can type a number, use up/down arrow or select a line with
+                You can type a number, use up/down arrows or select a line with
                 the mouse
               </Label>
               <span style={{ padding: "0px 1rem" }}>–</span>
