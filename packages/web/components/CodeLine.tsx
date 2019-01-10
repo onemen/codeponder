@@ -37,17 +37,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       scrollPosition = getScrollY();
       setCommentsForRow([...commentsForRow, data]);
     }
-    toggleShowEditor(false, submitted);
-  };
-
-  // add background to current line
-  const toggleShowEditor = (show: boolean, submitted?: boolean) => {
-    if ((show && commentsForRow.length == 0) || submitted) {
-      lineRef.current!.classList.add("is-selected");
-    } else {
-      lineRef.current!.classList.remove("is-selected");
-    }
-    setShowEditor(show);
+    setShowEditor(false);
   };
 
   useEffect(
@@ -76,7 +66,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       elm.classList.contains("btn-open-edit") ||
       elm.classList.contains("btn-reply")
     ) {
-      toggleShowEditor(true);
+      setShowEditor(true);
     }
   }, []);
 

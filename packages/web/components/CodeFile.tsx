@@ -74,11 +74,11 @@ const getCommentsForFile = (
   }, {});
 };
 
-const toggleClassForList = (parent: Element, selector: string): void => {
-  parent
-    .querySelectorAll(`.${selector}`)
-    .forEach(elm => elm.classList.toggle(selector, false));
-};
+// const toggleClassForList = (parent: Element, selector: string): void => {
+//   parent
+//     .querySelectorAll(`.${selector}`)
+//     .forEach(elm => elm.classList.toggle(selector, false));
+// };
 
 const setIsHovered = (
   questions: CodeReviewQuestionInfoFragment[],
@@ -103,7 +103,9 @@ const setIsHovered = (
         q => currentLine >= q.startingLineNum && currentLine <= q.endingLineNum
       );
     }
-    toggleClassForList(parent, "is-hovered");
+    parent
+      .querySelectorAll(".is-hovered")
+      .forEach((elm: Element) => elm.classList.remove("is-hovered"));
     if (isOverLine) {
       elm.classList.add("is-hovered");
     }

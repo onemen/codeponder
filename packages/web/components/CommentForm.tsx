@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from "react";
 
-import { useSelectedLines } from "./useSelectedLines";
+import { useSelectedLines, cleanSelectedLines } from "./useSelectedLines";
 import { useInputValue } from "../utils/useInputValue";
 import { isScrolledIntoView, getScrollY } from "../utils/domScrollUtils";
 import { MyButton, styled, Label, BlueInput } from "@codeponder/ui";
@@ -112,6 +112,13 @@ export const TextEditor = (props: TextEditorProps) => {
     view
   );
 
+  /*
+  TODO:
+  - fix validation
+  - fix margin between line number and plus button
+  - check if is can use <button>+</button> instead of svg
+  */
+
   const titleTrimmed = (() => title.trim())();
   const textTrimmed = (() => text.trim())();
   const isValidForm = titleTrimmed && textTrimmed;
@@ -137,8 +144,13 @@ export const TextEditor = (props: TextEditorProps) => {
   // close editor with Esc if user did not start editing
   const onKeyDown = useCallback(({ keyCode }: any) => {
     if (keyCode == 27 && !textTrimmed) {
-      submitForm({ cancel: true } as TextEditorResult);
+      onCancel();
     }
+  }, []);
+
+  const onCancel = useCallback(() => {
+    cleanSelectedLines();
+    submitForm({ cancel: true } as TextEditorResult);
   }, []);
 
   return (
@@ -199,13 +211,7 @@ export const TextEditor = (props: TextEditorProps) => {
         </FormRow>
         <Separator />
         <div className="btn-box">
-          <MyButton
-            variant="form"
-            className="btn"
-            onClick={() => {
-              submitForm({ cancel: true } as TextEditorResult);
-            }}
-          >
+          <MyButton variant="form" className="btn" onClick={onCancel}>
             Cancel
           </MyButton>
           <MyButton

@@ -7,10 +7,6 @@ interface TreeElement extends HTMLElement {
   nextSibling: TreeElement;
 }
 
-interface CodeElement extends Element {
-  setStartingLineNum: (val?: number) => void;
-}
-
 const setIsHovered = (
   { target: elm, currentTarget: parent, type }: any,
   start: number,
@@ -33,6 +29,14 @@ const setIsHovered = (
   }
 };
 
+export const cleanSelectedLines = (
+  parentElm = document.querySelector(".code-content")
+) => {
+  parentElm!
+    .querySelectorAll(".is-selected")
+    .forEach(elm => elm.classList.remove("is-selected"));
+};
+
 export const useSelectedLines = (
   startInput: React.RefObject<HTMLInputElement>,
   endInput: React.RefObject<HTMLInputElement>,
@@ -41,7 +45,7 @@ export const useSelectedLines = (
   end: number,
   view: string
 ) => {
-  const parentElm: CodeElement | null = document.querySelector(".code-content");
+  const parentElm = document.querySelector(".code-content");
 
   const applyEffect = view == "in-code" && parentElm;
 
@@ -90,9 +94,7 @@ export const useSelectedLines = (
         `[data-line-number="${currentLine}"]`
       ) as TreeElement;
       if (numberElm && currentLine <= end) {
-        parentElm!
-          .querySelectorAll(".is-selected")
-          .forEach(elm => elm.classList.toggle("is-selected", false));
+        cleanSelectedLines(parentElm);
         while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
           numberElm.parentNode.classList.add("is-selected");
           numberElm = numberElm.parentNode.nextSibling.childNodes[0];
