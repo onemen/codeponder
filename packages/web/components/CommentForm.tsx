@@ -10,6 +10,13 @@ interface FormInputProps {
   width?: string;
 }
 
+interface TreeElement extends HTMLElement {
+  parentNode: TreeElement;
+  childNodes: NodeListOf<TreeElement>;
+  classList: DOMTokenList;
+  nextSibling: TreeElement;
+}
+
 const FormInput = styled(BlueInput)`
   background: #f2f2f2;
   border: 1px solid transparent;
@@ -67,6 +74,7 @@ export interface TextEditorProps {
   endingLineNum: number;
   submitForm: (props: TextEditorResult) => Promise<void>;
   type: "reply" | "question";
+  view: "in-code" | "in-tree";
 }
 
 export interface TextEditorResult {
@@ -81,9 +89,101 @@ interface CodeElement extends Element {
   setStartingLineNum: (val?: number) => void;
 }
 
-export const TextEditor = (props: TextEditorProps) => {
-  const { isReplay, startingLineNum, endingLineNum, submitForm, type } = props;
+const setIsHovered = (
+  { target: elm, currentTarget: parent, type }: any,
+  start: number,
+  end: number,
+  startingLineNumChange: (e: any) => void
+) => {
+  while (elm && elm != parent && !elm.classList.contains("token-line")) {
+    elm = elm.parentNode || null;
+  }
+  if (elm && parent) {
+    let isOverLine =
+      type == "mouseover" && elm.classList.contains("token-line");
 
+    let numberElm = elm.childNodes[0];
+    const currentLine = +numberElm.dataset.lineNumber;
+
+    if (isOverLine && currentLine != start && currentLine <= end) {
+      startingLineNumChange({ currentTarget: { value: currentLine } });
+    }
+  }
+};
+
+const useStyleSelectedLines = (
+  startInput,
+  endInput,
+  start,
+  startChange,
+  end,
+  view
+) => {
+  const parentElm: CodeElement | null = document.querySelector(".code-content");
+
+  // listening to mouse move when start input is focused
+  useEffect(() => {
+    if (startInput.current && parentElm) {
+      const onMouseOverOrOut = (e: any) => {
+        const startVal = +startInput.current!.value;
+        const endVal = +endInput.current!.value;
+        setIsHovered(e, startVal, endVal, startChange);
+      };
+      const onFocus = () => {
+        parentElm.classList.add("js-select-line");
+        startInput.current!.addEventListener("blur", onBlur);
+        parentElm.addEventListener("mouseout", onMouseOverOrOut);
+        parentElm.addEventListener("mouseover", onMouseOverOrOut);
+      };
+      const onBlur = () => {
+        parentElm.classList.remove("js-select-line");
+        startInput.current!.removeEventListener("blur", onBlur);
+        parentElm.removeEventListener("mouseout", onMouseOverOrOut);
+        parentElm.removeEventListener("mouseover", onMouseOverOrOut);
+      };
+      startInput.current!.addEventListener("focus", onFocus);
+      return () => {
+        startInput.current!.removeEventListener("focus", onFocus);
+        onBlur();
+      };
+    }
+  }, []);
+
+  // Styles lines between start - end when start change
+  useEffect(
+    () => {
+      const input = startInput!.current!;
+      if (parentElm && input) {
+        const currentLine = input.validity.valid ? input.value : end;
+        let numberElm = parentElm.querySelector(
+          `[data-line-number="${currentLine}"]`
+        ) as TreeElement;
+        if (numberElm && currentLine <= end) {
+          parentElm
+            .querySelectorAll(".is-selected")
+            .forEach(elm => elm.classList.toggle("is-selected", false));
+          while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
+            numberElm.parentNode.classList.add("is-selected");
+            numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+          }
+        }
+      }
+    },
+    [start]
+  );
+};
+
+export const TextEditor = (props: TextEditorProps) => {
+  const {
+    isReplay,
+    startingLineNum,
+    endingLineNum,
+    submitForm,
+    type,
+    view,
+  } = props;
+
+  // const parentElm: CodeElement | null = document.querySelector(".code-content");
   const formRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const startInput = useRef<HTMLInputElement>(null);
@@ -100,8 +200,6 @@ export const TextEditor = (props: TextEditorProps) => {
   const textTrimmed = (() => text.trim())();
   const isValidForm = titleTrimmed && textTrimmed;
 
-  // console.log("start", start);
-
   // focus title / textarea
   useEffect(() => {
     if (inputRef) {
@@ -109,75 +207,42 @@ export const TextEditor = (props: TextEditorProps) => {
     }
   }, []);
 
-  // highlight selected lines
-  useEffect(() => {
-    const parentElm: CodeElement | null = document.querySelector(
-      ".code-content"
-    );
-    if (startInput.current && parentElm) {
-      const onMouseDown = () => {
-        // console.log("onMouseDown");
-        // const list: NodeListOf<HTMLTableCellElement> = parentElm.querySelectorAll(
-        //   ".is-hovered"
-        // );
-        // list.forEach(td => td.classList.toggle("is-hovered", false));
-      };
-      const onFocus = () => {
-        // console.log("onFocus", { startingLineNum, endingLineNum, parentElm });
-        startInput.current!.addEventListener("blur", onBlur);
-        parentElm.classList.add("js-select-line");
-        // parentElm.setAttribute("data-ending-line-num", end);
-        // parentElm.setAttribute("data-selected-range", `${start}-${end}`);
+  useStyleSelectedLines(
+    startInput,
+    endInput,
+    start,
+    startingLineNumChange,
+    end,
+    view
+  );
 
-        /*         const numberElm: HTMLElement | null = parentElm.querySelector(
-          `[data-line-number="${end}"]`
-        );
-        if (numberElm && numberElm.parentNode) {
-          const f = numberElm.parentNode;
-          numberElm.parentNode.classList.add("is-selected");
-        } */
-
-        // parentElm.setStartingLineNum = (val?: number) => {
-        //   startingLineNumChange({ currentTarget: { value: val } });
-        // };
-        parentElm.addEventListener("mousedown", onMouseDown);
-        parentElm.addEventListener("mouseout", onMouseOverOrOut);
-        parentElm.addEventListener("mouseover", onMouseOverOrOut);
-        // parentElm.firstChild!.addEventListener(
-        //   "mouseout",
-        //   e => {
-        //     e.preventDefault();
-        //     console.log("commentForm onmouseout");
-        //   },
-        //   true
-        // );
-        // parentElm.firstChild!.addEventListener(
-        //   "mouseover",
-        //   e => {
-        //     e.preventDefault();
-        //     console.log("commentForm onmouseover");
-        //   },
-        //   true
-        // );
-      };
-      const onBlur = () => {
-        // console.log("onBlur", { startingLineNum, endingLineNum });
-        startInput.current!.removeEventListener("blur", onBlur);
-        parentElm.classList.remove("js-select-line");
-        // parentElm.removeAttribute("data-ending-line-num");
-        // parentElm.removeAttribute("data-selected-range");
-        // parentElm.setStartingLineNum = () => {};
-        parentElm.removeEventListener("mousedown", onMouseDown);
-        parentElm.removeEventListener("mouseout", onMouseOverOrOut);
-        parentElm.removeEventListener("mouseover", onMouseOverOrOut);
-      };
-      startInput.current!.addEventListener("focus", onFocus);
-      return () => {
-        startInput.current!.removeEventListener("focus", onFocus);
-        onBlur();
-      };
-    }
-  }, []);
+  // // listening to mouse move when start input is focused
+  // useEffect(() => {
+  //   if (startInput.current && parentElm) {
+  //     const onMouseOverOrOut = (e: any) => {
+  //       const startVal = +startInput.current!.value;
+  //       const endVal = +endInput.current!.value;
+  //       setIsHovered(e, startVal, endVal, startingLineNumChange);
+  //     };
+  //     const onFocus = () => {
+  //       parentElm.classList.add("js-select-line");
+  //       startInput.current!.addEventListener("blur", onBlur);
+  //       parentElm.addEventListener("mouseout", onMouseOverOrOut);
+  //       parentElm.addEventListener("mouseover", onMouseOverOrOut);
+  //     };
+  //     const onBlur = () => {
+  //       parentElm.classList.remove("js-select-line");
+  //       startInput.current!.removeEventListener("blur", onBlur);
+  //       parentElm.removeEventListener("mouseout", onMouseOverOrOut);
+  //       parentElm.removeEventListener("mouseover", onMouseOverOrOut);
+  //     };
+  //     startInput.current!.addEventListener("focus", onFocus);
+  //     return () => {
+  //       startInput.current!.removeEventListener("focus", onFocus);
+  //       onBlur();
+  //     };
+  //   }
+  // }, []);
 
   // make sure the editor is fully visible
   useEffect(() => {
@@ -188,47 +253,34 @@ export const TextEditor = (props: TextEditorProps) => {
     }
   }, []);
 
-  useEffect(
-    () => {
-      const input = startInput!.current!;
-      // console.log("start", start);
-      const parentElm: TreeElement | null = document.querySelector(
-        ".code-content"
-      );
-      if (parentElm) {
-        const currentLine = input.validity.valid ? input.value : end;
-        let numberElm = parentElm.querySelector(
-          `[data-line-number="${currentLine}"]`
-        ) as TreeElement;
-        if (numberElm) {
-          // selectRange(parentElm, numberElm as TreeElement, -1, end);
-          // const currentLine = Number(numberElm.dataset.lineNumber);
-          // if (currentLine != start && currentLine <= end) {
-          if (currentLine <= end) {
-            toggleClassForList(parentElm, "is-selected");
-            while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
-              numberElm.parentNode.classList.add("is-selected");
-              numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-              // console.log(numberElm, numberElm.dataset.lineNumber);
-            }
-          }
-        }
-      }
-    },
-    [start]
-  );
+  // // Styles lines between start - end when start change
+  // useEffect(
+  //   () => {
+  //     const input = startInput!.current!;
+  //     if (parentElm && input) {
+  //       const currentLine = input.validity.valid ? input.value : end;
+  //       let numberElm = parentElm.querySelector(
+  //         `[data-line-number="${currentLine}"]`
+  //       ) as TreeElement;
+  //       if (numberElm && currentLine <= end) {
+  //         parentElm
+  //           .querySelectorAll(".is-selected")
+  //           .forEach(elm => elm.classList.toggle("is-selected", false));
+  //         while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
+  //           numberElm.parentNode.classList.add("is-selected");
+  //           numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+  //         }
+  //       }
+  //     }
+  //   },
+  //   [start]
+  // );
 
   // close editor with Esc if user did not start editing
   const onKeyDown = useCallback(({ keyCode }: any) => {
     if (keyCode == 27 && !textTrimmed) {
       submitForm({ cancel: true } as TextEditorResult);
     }
-  }, []);
-
-  const onMouseOverOrOut = useCallback((e: any) => {
-    const startVal = +startInput.current!.value;
-    const endVal = +endInput.current!.value;
-    setIsHovered(e, startVal, endVal, startingLineNumChange);
   }, []);
 
   return (
@@ -320,82 +372,4 @@ export const TextEditor = (props: TextEditorProps) => {
       </FormContainer>
     </CommentBoxContainer>
   );
-};
-
-const toggleClassForList = (parent: Element, selector: string): void => {
-  parent
-    .querySelectorAll(`.${selector}`)
-    .forEach(elm => elm.classList.toggle(selector, false));
-};
-
-// interface setIsHoveredProps {
-//   e: any;
-//   start: number;
-//   end: number;
-//   startingLineNumChange: (e: any) => void;
-// }
-
-// const setIsHovered = ({ target: elm, currentTarget: parent, type }: any) => {
-const setIsHovered = (
-  { target: elm, currentTarget: parent, type }: any,
-  start: number,
-  end: number,
-  startingLineNumChange: (e: any) => void
-) => {
-  // console.log("commentForm setIsHovered");
-  while (elm && elm != parent && !elm.classList.contains("token-line")) {
-    elm = elm.parentNode || null;
-  }
-  if (elm && parent) {
-    let isOverLine =
-      type == "mouseover" && elm.classList.contains("token-line");
-
-    let numberElm = elm.childNodes[0];
-    const currentLine = +numberElm.dataset.lineNumber;
-
-    if (isOverLine) {
-      // const selectedRange: string = parent.dataset.selectedRange;
-      // const [start, end] = selectedRange.split("-").map(val => +val);
-      console.log({
-        test: currentLine != start && currentLine <= end,
-        start,
-        end,
-        currentLine,
-      });
-      if (currentLine != start && currentLine <= end) {
-        // toggleClassForList(parent, "is-selected");
-        // startingLineNumChange(currentLine);
-        startingLineNumChange({ currentTarget: { value: currentLine } });
-        // parent.setAttribute("data-selected-range", `${currentLine}-${end}`);
-        // while (numberElm && numberElm.dataset.lineNumber <= end) {
-        //   numberElm.parentNode.classList.add("is-selected");
-        //   numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-        // }
-      }
-    }
-  }
-};
-
-interface TreeElement extends HTMLElement {
-  parentNode: TreeElement;
-  childNodes: NodeListOf<TreeElement>;
-  classList: DOMTokenList;
-  nextSibling: TreeElement;
-}
-
-const selectRange = (
-  parent: TreeElement,
-  numberElm: TreeElement,
-  start: number,
-  end: number
-): void => {
-  const currentLine = Number(numberElm.dataset.lineNumber);
-  if (currentLine != start && currentLine <= end) {
-    toggleClassForList(parent, "is-selected");
-    while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
-      numberElm.parentNode.classList.add("is-selected");
-      numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-      // console.log(numberElm, numberElm.dataset.lineNumber);
-    }
-  }
 };

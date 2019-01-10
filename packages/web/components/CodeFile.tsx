@@ -88,7 +88,6 @@ const setIsHovered = (
   if (parent.classList.contains("js-select-line")) {
     return;
   }
-  // console.log("CodeFile setIsHovered");
   while (elm && elm != parent && !elm.classList.contains("token-line")) {
     elm = elm.parentNode || null;
   }
@@ -104,26 +103,9 @@ const setIsHovered = (
         q => currentLine >= q.startingLineNum && currentLine <= q.endingLineNum
       );
     }
-
-    if (parent.classList.contains("js-select-line")) {
-      if (isOverLine) {
-        const selectedRange: string = parent.dataset.selectedRange;
-        const [start, end] = selectedRange.split("-").map(val => +val);
-        if (currentLine != start && currentLine <= end) {
-          toggleClassForList(parent, "is-selected");
-          parent.setStartingLineNum(currentLine);
-          parent.setAttribute("data-selected-range", `${currentLine}-${end}`);
-          while (numberElm && +numberElm.dataset.lineNumber <= end) {
-            numberElm.parentNode.classList.add("is-selected");
-            numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-          }
-        }
-      }
-    } else {
-      toggleClassForList(parent, "is-hovered");
-      if (isOverLine) {
-        elm.classList.add("is-hovered");
-      }
+    toggleClassForList(parent, "is-hovered");
+    if (isOverLine) {
+      elm.classList.add("is-hovered");
     }
   }
 };
