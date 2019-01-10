@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect } from "react";
 
+import { useSelectedLines } from "./useSelectedLines";
 import { useInputValue } from "../utils/useInputValue";
 import { isScrolledIntoView, getScrollY } from "../utils/domScrollUtils";
 import { MyButton, styled, Label, BlueInput } from "@codeponder/ui";
@@ -8,13 +9,6 @@ import { CommentBoxContainer } from "./commentUI";
 interface FormInputProps {
   minHeight?: string;
   width?: string;
-}
-
-interface TreeElement extends HTMLElement {
-  parentNode: TreeElement;
-  childNodes: NodeListOf<TreeElement>;
-  classList: DOMTokenList;
-  nextSibling: TreeElement;
 }
 
 const FormInput = styled(BlueInput)`
@@ -85,94 +79,6 @@ export interface TextEditorResult {
   text: string;
 }
 
-interface CodeElement extends Element {
-  setStartingLineNum: (val?: number) => void;
-}
-
-const setIsHovered = (
-  { target: elm, currentTarget: parent, type }: any,
-  start: number,
-  end: number,
-  startingLineNumChange: (e: any) => void
-) => {
-  while (elm && elm != parent && !elm.classList.contains("token-line")) {
-    elm = elm.parentNode || null;
-  }
-  if (elm && parent) {
-    let isOverLine =
-      type == "mouseover" && elm.classList.contains("token-line");
-
-    let numberElm = elm.childNodes[0];
-    const currentLine = +numberElm.dataset.lineNumber;
-
-    if (isOverLine && currentLine != start && currentLine <= end) {
-      startingLineNumChange({ currentTarget: { value: currentLine } });
-    }
-  }
-};
-
-const useStyleSelectedLines = (
-  startInput,
-  endInput,
-  start,
-  startChange,
-  end,
-  view
-) => {
-  const parentElm: CodeElement | null = document.querySelector(".code-content");
-
-  // listening to mouse move when start input is focused
-  useEffect(() => {
-    if (startInput.current && parentElm) {
-      const onMouseOverOrOut = (e: any) => {
-        const startVal = +startInput.current!.value;
-        const endVal = +endInput.current!.value;
-        setIsHovered(e, startVal, endVal, startChange);
-      };
-      const onFocus = () => {
-        parentElm.classList.add("js-select-line");
-        startInput.current!.addEventListener("blur", onBlur);
-        parentElm.addEventListener("mouseout", onMouseOverOrOut);
-        parentElm.addEventListener("mouseover", onMouseOverOrOut);
-      };
-      const onBlur = () => {
-        parentElm.classList.remove("js-select-line");
-        startInput.current!.removeEventListener("blur", onBlur);
-        parentElm.removeEventListener("mouseout", onMouseOverOrOut);
-        parentElm.removeEventListener("mouseover", onMouseOverOrOut);
-      };
-      startInput.current!.addEventListener("focus", onFocus);
-      return () => {
-        startInput.current!.removeEventListener("focus", onFocus);
-        onBlur();
-      };
-    }
-  }, []);
-
-  // Styles lines between start - end when start change
-  useEffect(
-    () => {
-      const input = startInput!.current!;
-      if (parentElm && input) {
-        const currentLine = input.validity.valid ? input.value : end;
-        let numberElm = parentElm.querySelector(
-          `[data-line-number="${currentLine}"]`
-        ) as TreeElement;
-        if (numberElm && currentLine <= end) {
-          parentElm
-            .querySelectorAll(".is-selected")
-            .forEach(elm => elm.classList.toggle("is-selected", false));
-          while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
-            numberElm.parentNode.classList.add("is-selected");
-            numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-          }
-        }
-      }
-    },
-    [start]
-  );
-};
-
 export const TextEditor = (props: TextEditorProps) => {
   const {
     isReplay,
@@ -183,7 +89,6 @@ export const TextEditor = (props: TextEditorProps) => {
     view,
   } = props;
 
-  // const parentElm: CodeElement | null = document.querySelector(".code-content");
   const formRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const startInput = useRef<HTMLInputElement>(null);
@@ -196,6 +101,17 @@ export const TextEditor = (props: TextEditorProps) => {
   const [end, endingLineNumChange] = useInputValue(endingLineNum);
   const [text, textChange] = useInputValue("");
 
+  // listening to mouse move when start input is focused
+  // Styles lines between start - end when start change
+  useSelectedLines(
+    startInput,
+    endInput,
+    start,
+    startingLineNumChange,
+    end,
+    view
+  );
+
   const titleTrimmed = (() => title.trim())();
   const textTrimmed = (() => text.trim())();
   const isValidForm = titleTrimmed && textTrimmed;
@@ -207,74 +123,16 @@ export const TextEditor = (props: TextEditorProps) => {
     }
   }, []);
 
-  useStyleSelectedLines(
-    startInput,
-    endInput,
-    start,
-    startingLineNumChange,
-    end,
-    view
-  );
-
-  // // listening to mouse move when start input is focused
-  // useEffect(() => {
-  //   if (startInput.current && parentElm) {
-  //     const onMouseOverOrOut = (e: any) => {
-  //       const startVal = +startInput.current!.value;
-  //       const endVal = +endInput.current!.value;
-  //       setIsHovered(e, startVal, endVal, startingLineNumChange);
-  //     };
-  //     const onFocus = () => {
-  //       parentElm.classList.add("js-select-line");
-  //       startInput.current!.addEventListener("blur", onBlur);
-  //       parentElm.addEventListener("mouseout", onMouseOverOrOut);
-  //       parentElm.addEventListener("mouseover", onMouseOverOrOut);
-  //     };
-  //     const onBlur = () => {
-  //       parentElm.classList.remove("js-select-line");
-  //       startInput.current!.removeEventListener("blur", onBlur);
-  //       parentElm.removeEventListener("mouseout", onMouseOverOrOut);
-  //       parentElm.removeEventListener("mouseover", onMouseOverOrOut);
-  //     };
-  //     startInput.current!.addEventListener("focus", onFocus);
-  //     return () => {
-  //       startInput.current!.removeEventListener("focus", onFocus);
-  //       onBlur();
-  //     };
-  //   }
-  // }, []);
-
   // make sure the editor is fully visible
   useEffect(() => {
-    const elm = formRef.current!.parentElement!.parentElement;
-    const { offsetBottom = 0 } = isScrolledIntoView(elm);
-    if (offsetBottom > 0) {
-      window.scrollTo(0, getScrollY() + offsetBottom + 50);
+    if (view == "in-code") {
+      const elm = formRef.current!.parentElement!.parentElement;
+      const { offsetBottom = 0 } = isScrolledIntoView(elm);
+      if (offsetBottom > 0) {
+        window.scrollTo(0, getScrollY() + offsetBottom + 50);
+      }
     }
   }, []);
-
-  // // Styles lines between start - end when start change
-  // useEffect(
-  //   () => {
-  //     const input = startInput!.current!;
-  //     if (parentElm && input) {
-  //       const currentLine = input.validity.valid ? input.value : end;
-  //       let numberElm = parentElm.querySelector(
-  //         `[data-line-number="${currentLine}"]`
-  //       ) as TreeElement;
-  //       if (numberElm && currentLine <= end) {
-  //         parentElm
-  //           .querySelectorAll(".is-selected")
-  //           .forEach(elm => elm.classList.toggle("is-selected", false));
-  //         while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
-  //           numberElm.parentNode.classList.add("is-selected");
-  //           numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-  //         }
-  //       }
-  //     }
-  //   },
-  //   [start]
-  // );
 
   // close editor with Esc if user did not start editing
   const onKeyDown = useCallback(({ keyCode }: any) => {
