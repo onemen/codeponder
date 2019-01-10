@@ -74,7 +74,7 @@ const getCommentsForFile = (
   }, {});
 };
 
-const toggleClassList = (parent: Element, selector: string): void => {
+const toggleClassForList = (parent: Element, selector: string): void => {
   parent
     .querySelectorAll(`.${selector}`)
     .forEach(elm => elm.classList.toggle(selector, false));
@@ -84,13 +84,12 @@ const setIsHovered = (
   questions: CodeReviewQuestionInfoFragment[],
   { target: elm, currentTarget: parent, type }: any
 ) => {
-  // let isOverLine = type == "mouseover";
+  // let the comment form handle the event
+  if (parent.classList.contains("js-select-line")) {
+    return;
+  }
+  // console.log("CodeFile setIsHovered");
   while (elm && elm != parent && !elm.classList.contains("token-line")) {
-    // // hide the button when user hover over comments or line-number
-    // const name = elm.classList[0];
-    // if (name && name.match(/comments-row|line-number|code-content/)) {
-    //   isOverLine = false;
-    // }
     elm = elm.parentNode || null;
   }
   if (elm && parent) {
@@ -106,61 +105,12 @@ const setIsHovered = (
       );
     }
 
-    // parent
-    //   .querySelectorAll(".is-hovered")
-    //   .forEach((td: HTMLTableCellElement) =>
-    //     td.classList.toggle("is-hovered", false)
-    //   );
-    // console.log(
-    //   parent.classList.contains("js-select-line"),
-    //   parent.dataset,
-    //   parent.dataset.endingLineNum,
-    //   typeof parent.dataset.endingLineNum,
-    //   elm.parentNode.dataset,
-    //   elm.parentNode.dataset.lineNumber,
-    //   typeof elm.parentNode.dataset.lineNumber
-    // );
-
     if (parent.classList.contains("js-select-line")) {
       if (isOverLine) {
-        // toggleClassList(parent, "is-selected");
-        // const endingLineNum = +parent.dataset.endingLineNum;
-        // // let tr = elm.parentNode;
-        // // if (+tr.childNodes[0].dataset.lineNumber <= endingLineNum) {
-        // //   parent.setStartingLineNum(+tr.childNodes[0].dataset.lineNumber);
-        // //   while (tr && +tr.childNodes[0].dataset.lineNumber <= endingLineNum) {
-        // //     tr.childNodes[1].classList.add("is-selected");
-        // //     tr = tr.nextSibling;
-        // //   }
-        // // }
-        // let numberElm = elm.previousSibling;
-        // if (+numberElm.dataset.lineNumber <= endingLineNum) {
-        //   parent.setStartingLineNum(+numberElm.dataset.lineNumber);
-        //   while (numberElm && +numberElm.dataset.lineNumber <= endingLineNum) {
-        //     numberElm.nextSibling.classList.add("is-selected");
-        //     numberElm = numberElm.parentNode.nextSibling.childNodes[0];
-        //   }
-        // } else {
-        //   const currentLine = parent.querySelector(
-        //     `[data-line-number="${endingLineNum}"]`
-        //   );
-        //   currentLine.nextSibling.classList.add("is-selected");
-        //   // console.log(d);
-        // }
         const selectedRange: string = parent.dataset.selectedRange;
         const [start, end] = selectedRange.split("-").map(val => +val);
-        // let numberElm = elm.previousSibling;
-        // let numberElm = elm.childNodes[0];
-        // const currentLine = +numberElm.dataset.lineNumber;
-        // console.log(
-        //   start,
-        //   end,
-        //   currentLine,
-        //   currentLine != start && currentLine <= end
-        // );
-        // if (currentLine >= start && currentLine <= end) {
         if (currentLine != start && currentLine <= end) {
-          toggleClassList(parent, "is-selected");
+          toggleClassForList(parent, "is-selected");
           parent.setStartingLineNum(currentLine);
           parent.setAttribute("data-selected-range", `${currentLine}-${end}`);
           while (numberElm && +numberElm.dataset.lineNumber <= end) {
@@ -170,7 +120,7 @@ const setIsHovered = (
         }
       }
     } else {
-      toggleClassList(parent, "is-hovered");
+      toggleClassForList(parent, "is-hovered");
       if (isOverLine) {
         elm.classList.add("is-hovered");
       }

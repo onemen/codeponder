@@ -40,8 +40,8 @@ export const RenderLine: React.FC<RenderLineProps> = ({
     toggleShowEditor(false, submitted);
   };
 
-  // show select line background on current line
-  const toggleShowEditor = (show: boolean, submitted: boolean) => {
+  // add background to current line
+  const toggleShowEditor = (show: boolean, submitted?: boolean) => {
     if ((show && commentsForRow.length == 0) || submitted) {
       lineRef.current!.classList.add("is-selected");
     } else {
@@ -84,11 +84,16 @@ export const RenderLine: React.FC<RenderLineProps> = ({
     <>
       <tr ref={lineRef} key={lineNum} className="token-line">
         <td className="line-number" data-line-number={lineNum} />
-        <td dangerouslySetInnerHTML={{ __html: line }} onClick={onOpenEditor} />
+        <td
+          className="line-code"
+          dangerouslySetInnerHTML={{ __html: line }}
+          onClick={onOpenEditor}
+        />
       </tr>
       {(showEditor || commentsForRow.length > 0) && (
         <tr className="comments-row">
           <td
+            className="line-comments"
             style={{
               borderTop: "1px solid #e1e4e8",
               borderBottom: "1px solid #e1e4e8",

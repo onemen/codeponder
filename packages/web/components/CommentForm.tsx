@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 
 import { useInputValue } from "../utils/useInputValue";
 import { isScrolledIntoView, getScrollY } from "../utils/domScrollUtils";
@@ -19,11 +19,12 @@ const FormInput = styled(BlueInput)`
   width: ${(p: FormInputProps) => p.width || "100%"};
 
   &:focus {
-    border: 1px solid #d1d5da;
+    border: 1px solid #2188ff;
     box-shadow: inset 0 1px 2px rgba(27, 31, 35, 0.075),
       0 0 0 0.2em rgba(3, 102, 214, 0.3);
   }
 
+  /* hide spinners on number input filed */
   &[type="number"]::-webkit-inner-spin-button,
   &[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -45,7 +46,7 @@ const Separator = styled.div`
   background: #f2f2f2;
 `;
 
-const Container = styled.div`
+const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
   margin: 0.625em;
@@ -85,18 +86,21 @@ export const TextEditor = (props: TextEditorProps) => {
 
   const formRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const startingLineRef = useRef<HTMLInputElement>(null);
+  const startInput = useRef<HTMLInputElement>(null);
+  const endInput = useRef<HTMLInputElement>(null);
 
   const [title, titleChange] = useInputValue("");
   const [start, startingLineNumChange] = useInputValue(
-    String(startingLineNum || endingLineNum)
+    startingLineNum || endingLineNum
   );
-  const [end, endingLineNumChange] = useInputValue(String(endingLineNum));
+  const [end, endingLineNumChange] = useInputValue(endingLineNum);
   const [text, textChange] = useInputValue("");
 
   const titleTrimmed = (() => title.trim())();
   const textTrimmed = (() => text.trim())();
   const isValidForm = titleTrimmed && textTrimmed;
+
+  // console.log("start", start);
 
   // focus title / textarea
   useEffect(() => {
@@ -110,7 +114,7 @@ export const TextEditor = (props: TextEditorProps) => {
     const parentElm: CodeElement | null = document.querySelector(
       ".code-content"
     );
-    if (startingLineRef.current && parentElm) {
+    if (startInput.current && parentElm) {
       const onMouseDown = () => {
         // console.log("onMouseDown");
         // const list: NodeListOf<HTMLTableCellElement> = parentElm.querySelectorAll(
@@ -120,10 +124,10 @@ export const TextEditor = (props: TextEditorProps) => {
       };
       const onFocus = () => {
         // console.log("onFocus", { startingLineNum, endingLineNum, parentElm });
-        startingLineRef.current!.addEventListener("blur", onBlur);
+        startInput.current!.addEventListener("blur", onBlur);
         parentElm.classList.add("js-select-line");
         // parentElm.setAttribute("data-ending-line-num", end);
-        parentElm.setAttribute("data-selected-range", `${start}-${end}`);
+        // parentElm.setAttribute("data-selected-range", `${start}-${end}`);
 
         /*         const numberElm: HTMLElement | null = parentElm.querySelector(
           `[data-line-number="${end}"]`
@@ -133,23 +137,43 @@ export const TextEditor = (props: TextEditorProps) => {
           numberElm.parentNode.classList.add("is-selected");
         } */
 
-        parentElm.setStartingLineNum = (val?: number) => {
-          startingLineNumChange({ currentTarget: { value: val } });
-        };
+        // parentElm.setStartingLineNum = (val?: number) => {
+        //   startingLineNumChange({ currentTarget: { value: val } });
+        // };
         parentElm.addEventListener("mousedown", onMouseDown);
+        parentElm.addEventListener("mouseout", onMouseOverOrOut);
+        parentElm.addEventListener("mouseover", onMouseOverOrOut);
+        // parentElm.firstChild!.addEventListener(
+        //   "mouseout",
+        //   e => {
+        //     e.preventDefault();
+        //     console.log("commentForm onmouseout");
+        //   },
+        //   true
+        // );
+        // parentElm.firstChild!.addEventListener(
+        //   "mouseover",
+        //   e => {
+        //     e.preventDefault();
+        //     console.log("commentForm onmouseover");
+        //   },
+        //   true
+        // );
       };
       const onBlur = () => {
         // console.log("onBlur", { startingLineNum, endingLineNum });
-        startingLineRef.current!.removeEventListener("blur", onBlur);
+        startInput.current!.removeEventListener("blur", onBlur);
         parentElm.classList.remove("js-select-line");
         // parentElm.removeAttribute("data-ending-line-num");
-        parentElm.removeAttribute("data-selected-range");
-        parentElm.setStartingLineNum = () => {};
+        // parentElm.removeAttribute("data-selected-range");
+        // parentElm.setStartingLineNum = () => {};
         parentElm.removeEventListener("mousedown", onMouseDown);
+        parentElm.removeEventListener("mouseout", onMouseOverOrOut);
+        parentElm.removeEventListener("mouseover", onMouseOverOrOut);
       };
-      startingLineRef.current!.addEventListener("focus", onFocus);
+      startInput.current!.addEventListener("focus", onFocus);
       return () => {
-        startingLineRef.current!.removeEventListener("focus", onFocus);
+        startInput.current!.removeEventListener("focus", onFocus);
         onBlur();
       };
     }
@@ -164,16 +188,52 @@ export const TextEditor = (props: TextEditorProps) => {
     }
   }, []);
 
+  useEffect(
+    () => {
+      const input = startInput!.current!;
+      // console.log("start", start);
+      const parentElm: TreeElement | null = document.querySelector(
+        ".code-content"
+      );
+      if (parentElm) {
+        const currentLine = input.validity.valid ? input.value : end;
+        let numberElm = parentElm.querySelector(
+          `[data-line-number="${currentLine}"]`
+        ) as TreeElement;
+        if (numberElm) {
+          // selectRange(parentElm, numberElm as TreeElement, -1, end);
+          // const currentLine = Number(numberElm.dataset.lineNumber);
+          // if (currentLine != start && currentLine <= end) {
+          if (currentLine <= end) {
+            toggleClassForList(parentElm, "is-selected");
+            while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
+              numberElm.parentNode.classList.add("is-selected");
+              numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+              // console.log(numberElm, numberElm.dataset.lineNumber);
+            }
+          }
+        }
+      }
+    },
+    [start]
+  );
+
   // close editor with Esc if user did not start editing
-  const onKeyDown = ({ keyCode }: any) => {
+  const onKeyDown = useCallback(({ keyCode }: any) => {
     if (keyCode == 27 && !textTrimmed) {
       submitForm({ cancel: true } as TextEditorResult);
     }
-  };
+  }, []);
+
+  const onMouseOverOrOut = useCallback((e: any) => {
+    const startVal = +startInput.current!.value;
+    const endVal = +endInput.current!.value;
+    setIsHovered(e, startVal, endVal, startingLineNumChange);
+  }, []);
 
   return (
     <CommentBoxContainer>
-      <Container ref={formRef} onKeyDown={onKeyDown}>
+      <FormContainer ref={formRef} onKeyDown={onKeyDown}>
         {// hide title and line numbers on reply
         !isReplay && (
           <>
@@ -189,8 +249,7 @@ export const TextEditor = (props: TextEditorProps) => {
             <FormRow>
               <Label style={{ paddingBottom: ".4rem" }}>Line numbers</Label>
               <FormInput
-                ref={startingLineRef}
-                disabled={isReplay}
+                ref={startInput}
                 name="startingLineNum"
                 min="1"
                 max={endingLineNum}
@@ -201,10 +260,13 @@ export const TextEditor = (props: TextEditorProps) => {
               />
               <span style={{ padding: "0px 1rem" }}>–</span>
               <FormInput
+                ref={endInput}
+                /*TODO enable the input on other page */
                 disabled
                 name="endingLineNum"
                 value={end}
                 width="5em"
+                /*TODO add min max for the case the form is on other page */
                 onChange={endingLineNumChange}
               />
             </FormRow>
@@ -244,8 +306,8 @@ export const TextEditor = (props: TextEditorProps) => {
               if (isValidForm) {
                 submitForm({
                   cancel: false,
-                  startingLineNum: parseInt(start, 10),
-                  endingLineNum: parseInt(end, 10),
+                  startingLineNum: start,
+                  endingLineNum: end,
                   title: titleTrimmed,
                   text: textTrimmed,
                 });
@@ -255,7 +317,85 @@ export const TextEditor = (props: TextEditorProps) => {
             Save
           </MyButton>
         </div>
-      </Container>
+      </FormContainer>
     </CommentBoxContainer>
   );
+};
+
+const toggleClassForList = (parent: Element, selector: string): void => {
+  parent
+    .querySelectorAll(`.${selector}`)
+    .forEach(elm => elm.classList.toggle(selector, false));
+};
+
+// interface setIsHoveredProps {
+//   e: any;
+//   start: number;
+//   end: number;
+//   startingLineNumChange: (e: any) => void;
+// }
+
+// const setIsHovered = ({ target: elm, currentTarget: parent, type }: any) => {
+const setIsHovered = (
+  { target: elm, currentTarget: parent, type }: any,
+  start: number,
+  end: number,
+  startingLineNumChange: (e: any) => void
+) => {
+  // console.log("commentForm setIsHovered");
+  while (elm && elm != parent && !elm.classList.contains("token-line")) {
+    elm = elm.parentNode || null;
+  }
+  if (elm && parent) {
+    let isOverLine =
+      type == "mouseover" && elm.classList.contains("token-line");
+
+    let numberElm = elm.childNodes[0];
+    const currentLine = +numberElm.dataset.lineNumber;
+
+    if (isOverLine) {
+      // const selectedRange: string = parent.dataset.selectedRange;
+      // const [start, end] = selectedRange.split("-").map(val => +val);
+      console.log({
+        test: currentLine != start && currentLine <= end,
+        start,
+        end,
+        currentLine,
+      });
+      if (currentLine != start && currentLine <= end) {
+        // toggleClassForList(parent, "is-selected");
+        // startingLineNumChange(currentLine);
+        startingLineNumChange({ currentTarget: { value: currentLine } });
+        // parent.setAttribute("data-selected-range", `${currentLine}-${end}`);
+        // while (numberElm && numberElm.dataset.lineNumber <= end) {
+        //   numberElm.parentNode.classList.add("is-selected");
+        //   numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+        // }
+      }
+    }
+  }
+};
+
+interface TreeElement extends HTMLElement {
+  parentNode: TreeElement;
+  childNodes: NodeListOf<TreeElement>;
+  classList: DOMTokenList;
+  nextSibling: TreeElement;
+}
+
+const selectRange = (
+  parent: TreeElement,
+  numberElm: TreeElement,
+  start: number,
+  end: number
+): void => {
+  const currentLine = Number(numberElm.dataset.lineNumber);
+  if (currentLine != start && currentLine <= end) {
+    toggleClassForList(parent, "is-selected");
+    while (numberElm && Number(numberElm.dataset.lineNumber) <= end) {
+      numberElm.parentNode.classList.add("is-selected");
+      numberElm = numberElm.parentNode.nextSibling.childNodes[0];
+      // console.log(numberElm, numberElm.dataset.lineNumber);
+    }
+  }
 };
