@@ -36,7 +36,7 @@ export const QuestionReply: React.SFC<Props> = ({ questionId }) => {
 
 interface QuestionReplyProps {
   isReplay: boolean;
-  startingLineNum?: number; // not exist before the first commnet created
+  startingLineNum?: number; // not exist before the first comment created
   endingLineNum: number;
   onEditorSubmit: (T?: any) => void;
   questionId: string;

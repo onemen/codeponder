@@ -74,12 +74,6 @@ const getCommentsForFile = (
   }, {});
 };
 
-// const toggleClassForList = (parent: Element, selector: string): void => {
-//   parent
-//     .querySelectorAll(`.${selector}`)
-//     .forEach(elm => elm.classList.toggle(selector, false));
-// };
-
 const setIsHovered = (
   questions: CodeReviewQuestionInfoFragment[],
   { target: elm, currentTarget: parent, type }: any

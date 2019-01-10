@@ -75,7 +75,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       <tr ref={lineRef} key={lineNum} className="token-line">
         <td className="line-number" data-line-number={lineNum} />
         <td
-          className="line-code"
+          className="token-html"
           dangerouslySetInnerHTML={{ __html: line }}
           onClick={onOpenEditor}
         />

@@ -46,9 +46,6 @@ const Pre = styled.pre`
   }
 
   & .token-line {
-    padding-left: 0.625em;
-    padding-right: 0.625em;
-
     &.is-selected {
       background: hsla(24, 20%, 50%, 0.08);
       background: linear-gradient(
@@ -56,6 +53,11 @@ const Pre = styled.pre`
         hsla(24, 20%, 50%, 0.1) 70%,
         hsla(24, 20%, 50%, 0)
       );
+    }
+
+    & .token-html {
+      padding-left: 0.8em;
+      padding-right: 0.625em;
     }
   }
 

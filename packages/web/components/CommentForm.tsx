@@ -1,10 +1,11 @@
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useContext, useRef, useEffect } from "react";
 
 import { useSelectedLines, cleanSelectedLines } from "./useSelectedLines";
 import { useInputValue } from "../utils/useInputValue";
 import { isScrolledIntoView, getScrollY } from "../utils/domScrollUtils";
 import { MyButton, styled, Label, BlueInput } from "@codeponder/ui";
 import { CommentBoxContainer } from "./commentUI";
+import { CodeFileContext } from "./CodeFileContext";
 
 interface FormInputProps {
   minHeight?: string;
@@ -60,6 +61,25 @@ const FormContainer = styled.div`
       min-width: 6em;
     }
   }
+
+  /* Tooltip text */
+  .start-tooltip + .tooltiptext {
+    border-radius: 3px;
+    /* width: 120px; */
+    background-color: #f4f6dd;
+    /* color: #fff; */
+    font-size: 1em;
+    padding: 0.6rem 1rem;
+    position: absolute;
+    left: 15em;
+    text-align: center;
+    visibility: hidden;
+    z-index: 1;
+  }
+
+  .start-tooltip:focus + .tooltiptext {
+    visibility: visible;
+  }
 `;
 
 export interface TextEditorProps {
@@ -101,6 +121,8 @@ export const TextEditor = (props: TextEditorProps) => {
   const [end, endingLineNumChange] = useInputValue(endingLineNum);
   const [text, textChange] = useInputValue("");
 
+  const { totalLines } = useContext(CodeFileContext);
+
   // listening to mouse move when start input is focused
   // Styles lines between start - end when start change
   useSelectedLines(
@@ -112,16 +134,14 @@ export const TextEditor = (props: TextEditorProps) => {
     view
   );
 
-  /*
-  TODO:
-  - fix validation
-  - fix margin between line number and plus button
-  - check if is can use <button>+</button> instead of svg
-  */
-
+  // validate filed
   const titleTrimmed = (() => title.trim())();
   const textTrimmed = (() => text.trim())();
-  const isValidForm = titleTrimmed && textTrimmed;
+  const validateStartEnd =
+    !startInput.current ||
+    !endInput.current ||
+    (startInput.current!.validity.valid && endInput.current!.validity.valid);
+  const isValidForm = titleTrimmed && textTrimmed && validateStartEnd;
 
   // focus title / textarea
   useEffect(() => {
@@ -142,11 +162,14 @@ export const TextEditor = (props: TextEditorProps) => {
   }, []);
 
   // close editor with Esc if user did not start editing
-  const onKeyDown = useCallback(({ keyCode }: any) => {
-    if (keyCode == 27 && !textTrimmed) {
-      onCancel();
-    }
-  }, []);
+  const onKeyDown = useCallback(
+    ({ keyCode }: any) => {
+      if (keyCode == 27 && !titleTrimmed && !textTrimmed) {
+        onCancel();
+      }
+    },
+    [titleTrimmed, textTrimmed]
+  );
 
   const onCancel = useCallback(() => {
     cleanSelectedLines();
@@ -171,24 +194,30 @@ export const TextEditor = (props: TextEditorProps) => {
             <FormRow>
               <Label style={{ paddingBottom: ".4rem" }}>Line numbers</Label>
               <FormInput
+                className="start-tooltip"
                 ref={startInput}
                 name="startingLineNum"
                 min="1"
-                max={endingLineNum}
+                max={Math.min(endingLineNum, totalLines)}
                 type="number"
                 value={start}
                 width="5em"
                 onChange={startingLineNumChange}
               />
+              <Label className="tooltiptext" as="span">
+                You can type a number, use up/down arrow or select a line with
+                the mouse
+              </Label>
               <span style={{ padding: "0px 1rem" }}>–</span>
               <FormInput
                 ref={endInput}
-                /*TODO enable the input on other page */
-                disabled
+                disabled={view == "in-code"}
                 name="endingLineNum"
+                min={Math.min(start, totalLines)}
+                max={totalLines}
+                type="number"
                 value={end}
                 width="5em"
-                /*TODO add min max for the case the form is on other page */
                 onChange={endingLineNumChange}
               />
             </FormRow>
@@ -216,7 +245,7 @@ export const TextEditor = (props: TextEditorProps) => {
           </MyButton>
           <MyButton
             variant="form"
-            {...(isValidForm ? "" : "disabled")}
+            disabled={!isValidForm}
             className={`primary ${isValidForm ? "" : "disabled"}`}
             onClick={() => {
               if (isValidForm) {
