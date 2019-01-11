@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AddComment } from "./CommentSection";
 import { CommentProps, CommentBox } from "./commentUI";
 import { getScrollY } from "../utils/domScrollUtils";
@@ -15,6 +15,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   line,
   lineNum,
 }) => {
+  const lineRef = useRef<HTMLTableRowElement>(null);
   const { owner } = useContext(CodeFileContext);
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
@@ -62,7 +63,8 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   const onOpenEditor = useCallback(({ target: elm }: any) => {
     if (
-      elm.classList.contains("btn-open-edit") ||
+      (elm.classList.contains("btn-open-edit") &&
+        elm.parentNode.parentNode.classList.contains("is-hovered")) ||
       elm.classList.contains("btn-reply")
     ) {
       setShowEditor(true);
@@ -71,21 +73,58 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   return (
     <>
-      <div
-        key={lineNum}
-        className="token-line"
-        dangerouslySetInnerHTML={{ __html: line }}
-        onClick={onOpenEditor}
-      />
-      {commentsForRow.map((comment, key) => {
-        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-      }) || null}
-      {showEditor && (
-        <AddComment
-          comments={commentsForRow}
-          line={lineNum}
-          onEditorSubmit={onEditorSubmit}
+      <tr ref={lineRef} key={lineNum} className="token-line">
+        <td className="line-number" data-line-number={lineNum} />
+        <td
+          className="token-html"
+          dangerouslySetInnerHTML={{ __html: line }}
+          onClick={onOpenEditor}
         />
+      </tr>
+      {(showEditor || commentsForRow.length > 0) && (
+        <tr className="comments-row">
+          <td
+            className="line-comments"
+            style={{
+              borderTop: "1px solid #e1e4e8",
+              borderBottom: "1px solid #e1e4e8",
+              padding: "0.75em",
+            }}
+            colSpan={2}
+          >
+            <div
+              style={{
+                border: "1px solid #dfe2e5",
+                borderRadius: "3px",
+              }}
+            >
+              {commentsForRow.length > 0 && (
+                <div
+                  style={{
+                    backgroundColor: "#f6f8fa",
+                    border: "1px solid #e1e4e8",
+                    borderRadius: "3px 3px 0 0",
+                    padding: "10px",
+                    textAlign: "right",
+                  }}
+                >
+                  <button style={{ padding: "0.5em" }}>Add Reply ↓</button>
+                  <button style={{ padding: "0.5em" }}>View ▾</button>
+                </div>
+              )}
+              {commentsForRow.map((comment, key) => {
+                return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+              }) || null}
+              {showEditor && (
+                <AddComment
+                  comments={commentsForRow}
+                  line={lineNum}
+                  onEditorSubmit={onEditorSubmit}
+                />
+              )}
+            </div>
+          </td>
+        </tr>
       )}
     </>
   );

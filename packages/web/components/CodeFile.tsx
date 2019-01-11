@@ -20,8 +20,6 @@ interface loadingCodeState {
 /*
  * *Styles for the line numbers coming from the server
  *
- * TODO: Perhaps refactor SelectLinesMouse as a 'sub function' of SelectLines?
- * Or the two in a more general utils?
  */
 const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
   let offset = 0;
@@ -76,24 +74,34 @@ const getCommentsForFile = (
   }, {});
 };
 
-const setIsHovered = ({ target: elm, currentTarget: current, type }: any) => {
-  let showButton = type == "mouseover";
-  while (elm && elm != current && !elm.classList.contains("token-line")) {
-    // hide the button when user hover over comments or line-number
-    const name = elm.classList[0];
-    if (name && name.match(/CommentBoxContainer|line-number|code-content/)) {
-      showButton = false;
-    }
+const setIsHovered = (
+  questions: CodeReviewQuestionInfoFragment[],
+  { target: elm, currentTarget: parent, type }: any
+) => {
+  // let the comment form handle the event
+  if (parent.classList.contains("js-select-line")) {
+    return;
+  }
+  while (elm && elm != parent && !elm.classList.contains("token-line")) {
     elm = elm.parentNode || null;
   }
-  if (elm && current) {
-    current
-      .querySelectorAll(".is-hovered")
-      .forEach((button: HTMLButtonElement) =>
-        button.classList.toggle("is-hovered", false)
+  if (elm && parent) {
+    let isOverLine =
+      type == "mouseover" && elm.classList.contains("token-line");
+
+    let numberElm = elm.childNodes[0];
+    const currentLine = +numberElm.dataset.lineNumber;
+    // we only allow one question on lines range
+    if (isOverLine && questions.length > 0) {
+      isOverLine = !questions.some(
+        q => currentLine >= q.startingLineNum && currentLine <= q.endingLineNum
       );
-    if (showButton) {
-      elm.childNodes[1].classList.add("is-hovered");
+    }
+    parent
+      .querySelectorAll(".is-hovered")
+      .forEach((elm: Element) => elm.classList.remove("is-hovered"));
+    if (isOverLine) {
+      elm.classList.add("is-hovered");
     }
   }
 };
@@ -118,9 +126,8 @@ const useHighlight = (lang: string, code: string) => {
         const PlusButton = PLUSBUTTON.split("\n")
           .map(item => item.trim())
           .join("");
-        const tokens = highlightedCode.split("\n").map((line, lineNum) => {
-          return `<span class="line-number">${lineNum +
-            1}</span>${PlusButton}${line}`;
+        const tokens = highlightedCode.split("\n").map(line => {
+          return `${PlusButton}${line}`;
         });
 
         setHighlightCode({ pending: false, resolved: tokens });
@@ -147,13 +154,16 @@ export const CodeFile: React.FC = () => {
 
         const highlightedCode = highlightCode.resolved!;
         const comments = getCommentsForFile(data, owner);
+        const questions = data.findCodeReviewQuestions;
+
+        const onMouseOverAndOut = setIsHovered.bind(null, questions);
 
         return (
           <CodeCard
             lang={lang}
-            selectedLines={SelectLines(data.findCodeReviewQuestions)}
-            onMouseOut={setIsHovered}
-            onMouseOver={setIsHovered}
+            selectedLines={SelectLines(questions)}
+            onMouseOut={onMouseOverAndOut}
+            onMouseOver={onMouseOverAndOut}
           >
             {highlightedCode.map((line, index) => (
               <RenderLine

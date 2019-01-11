@@ -19,25 +19,45 @@ interface styleProps {
 const Pre = styled.pre`
   font-size: ${(p: styleProps) => p.fontSize || 14}px;
 
-  & code[class*="language-"] {
-    padding-left: 0;
+  &.code-content code[class*="language-"] {
+    /* override prism-coy border */
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: none;
+    margin-bottom: 1em;
+    margin-top: 1em;
     overflow: hidden;
+    padding: 0;
   }
 
   & .line-number {
-    border-right: 1px solid #999;
     color: #999;
     cursor: pointer;
-    display: inline-block;
-    letter-spacing: -1px;
-    margin-right: 0.65em;
-    padding-right: 0.8em;
+    padding-left: 0.625em;
+    padding-right: 0.625em;
     text-align: right;
     user-select: none;
-    width: 3em;
+    min-width: 3em;
+    width: 1%;
 
-    &.comment {
-      cursor: default;
+    &::before {
+      content: attr(data-line-number);
+    }
+  }
+
+  & .token-line {
+    &.is-selected {
+      background: hsla(24, 20%, 50%, 0.08);
+      background: linear-gradient(
+        to right,
+        hsla(24, 20%, 50%, 0.1) 70%,
+        hsla(24, 20%, 50%, 0)
+      );
+    }
+
+    & .token-html {
+      padding-left: 0.8em;
+      padding-right: 0.625em;
     }
   }
 
@@ -47,7 +67,6 @@ const Pre = styled.pre`
     text-align: center;
     text-transform: uppercase;
     font-weight: 500;
-    cursor: pointer;
 
     /* primary */
     background-color: #6dc1fd;
@@ -68,15 +87,6 @@ const Pre = styled.pre`
       opacity: 0;
     }
 
-    &:hover {
-      transform: scale(1);
-      opacity: 1;
-    }
-
-    &.is-hovered {
-      opacity: 1;
-    }
-
     & svg {
       display: inline-block;
       fill: currentColor;
@@ -85,7 +95,30 @@ const Pre = styled.pre`
     }
   }
 
+  &.js-select-line {
+    & .token-line {
+      cursor: pointer;
+    }
+  }
+
+  &:not(.js-select-line) {
+    & .token-line.is-hovered {
+      & .btn-open-edit {
+        opacity: 1;
+        cursor: pointer;
+      }
+
+      & .btn-open-edit:hover {
+        transform: scale(1);
+      }
+    }
+  }
+
   ${(p: styleProps) => p.selectedLines}
+
+  & table {
+    width: 100%;
+  }
 `;
 
 export const CodeCard: React.FunctionComponent<Props> = ({
@@ -93,7 +126,11 @@ export const CodeCard: React.FunctionComponent<Props> = ({
   children,
   ...props
 }) => (
-  <Pre className={`language-${lang}`} {...props}>
-    <code className={`code-content language-${lang}`}>{children}</code>
+  <Pre className={`code-content language-${lang}`} {...props}>
+    <code className={`language-${lang}`}>
+      <table>
+        <tbody>{children}</tbody>
+      </table>
+    </code>
   </Pre>
 );
