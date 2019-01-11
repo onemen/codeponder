@@ -1,4 +1,10 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useReducer,
+} from "react";
 import { AddComment } from "./CommentSection";
 import { CommentProps, CommentBox } from "./commentUI";
 import { getScrollY } from "../utils/domScrollUtils";
@@ -16,7 +22,6 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   line,
   lineNum,
 }) => {
-  const lineRef = useRef<HTMLTableRowElement>(null);
   const { owner } = useContext(CodeFileContext);
   const [showEditor, setShowEditor] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
@@ -80,9 +85,11 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   - add top nav bar
   */
 
+  // console.log("RenderLine", lineNum);
+
   return (
     <>
-      <tr ref={lineRef} key={lineNum} className="token-line">
+      <tr key={lineNum} className="token-line">
         <td className="line-number" data-line-number={lineNum} />
         <td
           className="token-html"
@@ -91,9 +98,9 @@ export const RenderLine: React.FC<RenderLineProps> = ({
         />
       </tr>
       {(showEditor || commentsForRow.length > 0) && (
-        <tr className="comments-container">
+        <tr className="discussion-container">
           <td colSpan={2}>
-            <CommentsSection
+            <Discussion
               {...{
                 comments: commentsForRow,
                 onOpenEditor,
@@ -102,31 +109,6 @@ export const RenderLine: React.FC<RenderLineProps> = ({
                 onEditorSubmit,
               }}
             />
-            {/* commentsForRow.length > 0 && (
-                             <div
-                style={{
-                  backgroundColor: "#f6f8fa",
-                  // border: "1px solid #e1e4e8",
-                  // borderRadius: "3px 3px 0 0",
-                  borderBottom: "1px solid #e1e4e8",
-                  padding: "10px",
-                  textAlign: "right",
-                }}
-              >
-                <button style={{ padding: "0.5em" }}>Add Reply ↓</button>
-                <button style={{ padding: "0.5em" }}>View ▾</button>
-              </div>
-            ) */}
-            {/* commentsForRow.map((comment, key) => {
-              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-            }) || null */}
-            {/* showEditor && (
-              <AddComment
-                comments={commentsForRow}
-                line={lineNum}
-                onEditorSubmit={onEditorSubmit}
-              />
-            ) */}
           </td>
         </tr>
       )}
@@ -134,27 +116,69 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   );
 };
 
-const CommentsNav = styled.div`
+const DiscussionNavBar = styled.div`
   background-color: #f6f8fa;
   border-bottom: 1px solid #e1e4e8;
   padding: 10px;
-  text-align: right;
+  /* text-align: right; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  & .header-title {
+    font-weight: 400;
+    line-height: 1.125;
+    margin-bottom: 0;
+    /* margin-right: 150px; */
+    word-wrap: break-word;
+
+    & .discussion-number {
+      color: #a3aab1;
+      font-weight: 300;
+      letter-spacing: -1px;
+    }
+  }
 
   & button {
     padding: 0.5em;
   }
+
+  & .toggle-discussion-view {
+    font-size: 36px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    /* margin: 0; */
+    /* height: 20px; */
+    line-height: 36px;
+    vertical-align: middle;
+    transform: scale(0.8);
+    opacity: 1;
+    transition: opacity 0.2s, transform 0.2s ease-in-out;
+
+    &:hover {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+
+    &.is-open {
+      transform: rotate(180deg);
+    }
+  }
 `;
 
-const CommentsNavBar = () => {
-  return (
-    <CommentsNav>
-      <button>Add Reply ↓</button>
-      <button>View ▾</button>
-    </CommentsNav>
-  );
-};
+const DiscussionContent = styled.div`
+  max-height: 2000px;
+  opacity: 1;
+  transition: 2s ease-in-out;
 
-interface CommentsSectionProps {
+  &:not(.is-close) {
+    max-height: 0;
+    opacity: 0;
+  }
+`;
+
+interface DiscussionProps {
   comments: CommentProps[];
   showEditor: boolean;
   lineNum: number;
@@ -162,19 +186,57 @@ interface CommentsSectionProps {
   onEditorSubmit: (T?: any) => void;
 }
 
-const CommentsSection = ({
+const COLLAPSE = "Collapse this discussion";
+const EXPANDED = "Expanded this discussion";
+
+const Discussion: React.FC<DiscussionProps> = ({
   comments,
   showEditor,
   lineNum,
   onOpenEditor,
   onEditorSubmit,
-}: CommentsSectionProps) => {
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const [showDiscussion, setDiscussion] = useState(false);
+
+  const toggleDiscussionView = useCallback((e: any) => {
+    const button = e.target;
+    button.classList.toggle("is-open");
+    setTimeout(() => {
+      setDiscussion(val => !val);
+    }, 4000);
+  }, []);
+
   return (
     <>
-      {comments && <CommentsNavBar />}
-      {comments.map((comment, key) => {
-        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-      }) || null}
+      {comments && (
+        <DiscussionNavBar>
+          <h1 className="header-title">
+            <span className="discussion-title">Title placeholder</span>{" "}
+            <span className="discussion-number">#???</span>
+          </h1>
+          <div>
+            <button>Add Reply ↓</button>
+            <button
+              className="toggle-discussion-view"
+              title={showDiscussion ? EXPANDED : COLLAPSE}
+              onClick={toggleDiscussionView}
+            >
+              ▾
+            </button>
+          </div>
+        </DiscussionNavBar>
+      )}
+      {showDiscussion && (
+        <DiscussionContent ref={contentRef}>
+          {(showDiscussion &&
+            comments.map((comment, key) => {
+              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+            })) ||
+            null}
+        </DiscussionContent>
+      )}
       {showEditor && (
         <AddComment
           comments={comments}

@@ -113,7 +113,7 @@ const Pre = styled.pre`
     }
   }
 
-  & .comments-container {
+  & .discussion-container {
     border-top: 1px solid #dfe2e5;
     border-bottom: 1px solid #dfe2e5;
   }
