@@ -3,6 +3,7 @@ import { AddComment } from "./CommentSection";
 import { CommentProps, CommentBox } from "./commentUI";
 import { getScrollY } from "../utils/domScrollUtils";
 import { CodeFileContext } from "./CodeFileContext";
+import { styled } from "@codeponder/ui";
 
 interface RenderLineProps {
   comments: CommentProps[];
@@ -71,6 +72,14 @@ export const RenderLine: React.FC<RenderLineProps> = ({
     }
   }, []);
 
+  /*
+  TODO:
+  - move style to Pre style component or to Comments style component
+  - add new style to comments nav bar
+  - add actions to the nav bar
+  - add top nav bar
+  */
+
   return (
     <>
       <tr ref={lineRef} key={lineNum} className="token-line">
@@ -82,49 +91,96 @@ export const RenderLine: React.FC<RenderLineProps> = ({
         />
       </tr>
       {(showEditor || commentsForRow.length > 0) && (
-        <tr className="comments-row">
-          <td
-            className="line-comments"
-            style={{
-              borderTop: "1px solid #e1e4e8",
-              borderBottom: "1px solid #e1e4e8",
-              padding: "0.75em",
-            }}
-            colSpan={2}
-          >
-            <div
-              style={{
-                border: "1px solid #dfe2e5",
-                borderRadius: "3px",
+        <tr className="comments-container">
+          <td colSpan={2}>
+            <CommentsSection
+              {...{
+                comments: commentsForRow,
+                onOpenEditor,
+                showEditor,
+                lineNum,
+                onEditorSubmit,
               }}
-            >
-              {commentsForRow.length > 0 && (
-                <div
-                  style={{
-                    backgroundColor: "#f6f8fa",
-                    border: "1px solid #e1e4e8",
-                    borderRadius: "3px 3px 0 0",
-                    padding: "10px",
-                    textAlign: "right",
-                  }}
-                >
-                  <button style={{ padding: "0.5em" }}>Add Reply ↓</button>
-                  <button style={{ padding: "0.5em" }}>View ▾</button>
-                </div>
-              )}
-              {commentsForRow.map((comment, key) => {
-                return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-              }) || null}
-              {showEditor && (
-                <AddComment
-                  comments={commentsForRow}
-                  line={lineNum}
-                  onEditorSubmit={onEditorSubmit}
-                />
-              )}
-            </div>
+            />
+            {/* commentsForRow.length > 0 && (
+                             <div
+                style={{
+                  backgroundColor: "#f6f8fa",
+                  // border: "1px solid #e1e4e8",
+                  // borderRadius: "3px 3px 0 0",
+                  borderBottom: "1px solid #e1e4e8",
+                  padding: "10px",
+                  textAlign: "right",
+                }}
+              >
+                <button style={{ padding: "0.5em" }}>Add Reply ↓</button>
+                <button style={{ padding: "0.5em" }}>View ▾</button>
+              </div>
+            ) */}
+            {/* commentsForRow.map((comment, key) => {
+              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+            }) || null */}
+            {/* showEditor && (
+              <AddComment
+                comments={commentsForRow}
+                line={lineNum}
+                onEditorSubmit={onEditorSubmit}
+              />
+            ) */}
           </td>
         </tr>
+      )}
+    </>
+  );
+};
+
+const CommentsNav = styled.div`
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #e1e4e8;
+  padding: 10px;
+  text-align: right;
+
+  & button {
+    padding: 0.5em;
+  }
+`;
+
+const CommentsNavBar = () => {
+  return (
+    <CommentsNav>
+      <button>Add Reply ↓</button>
+      <button>View ▾</button>
+    </CommentsNav>
+  );
+};
+
+interface CommentsSectionProps {
+  comments: CommentProps[];
+  showEditor: boolean;
+  lineNum: number;
+  onOpenEditor: (props: any) => any;
+  onEditorSubmit: (T?: any) => void;
+}
+
+const CommentsSection = ({
+  comments,
+  showEditor,
+  lineNum,
+  onOpenEditor,
+  onEditorSubmit,
+}: CommentsSectionProps) => {
+  return (
+    <>
+      {comments && <CommentsNavBar />}
+      {comments.map((comment, key) => {
+        return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+      }) || null}
+      {showEditor && (
+        <AddComment
+          comments={comments}
+          line={lineNum}
+          onEditorSubmit={onEditorSubmit}
+        />
       )}
     </>
   );

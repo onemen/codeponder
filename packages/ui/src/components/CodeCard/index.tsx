@@ -32,7 +32,6 @@ const Pre = styled.pre`
 
   & .line-number {
     color: #999;
-    cursor: pointer;
     padding-left: 0.625em;
     padding-right: 0.625em;
     text-align: right;
@@ -114,11 +113,12 @@ const Pre = styled.pre`
     }
   }
 
-  ${(p: styleProps) => p.selectedLines}
-
-  & table {
-    width: 100%;
+  & .comments-container {
+    border-top: 1px solid #dfe2e5;
+    border-bottom: 1px solid #dfe2e5;
   }
+
+  ${(p: styleProps) => p.selectedLines}
 `;
 
 export const CodeCard: React.FunctionComponent<Props> = ({
