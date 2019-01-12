@@ -99,7 +99,7 @@ const Pre = styled.pre`
   }
 
   &:not(.js-select-line) {
-    & .token-line.is-hovered {
+    & .token-line:not(.is-selected).is-hovered {
       & .btn-open-edit {
         opacity: 1;
         cursor: pointer;

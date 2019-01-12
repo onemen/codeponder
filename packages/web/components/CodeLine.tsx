@@ -67,7 +67,6 @@ export const RenderLine: React.FC<RenderLineProps> = ({
         elm.parentNode.parentNode.classList.contains("is-hovered")) ||
       elm.classList.contains("btn-reply")
     ) {
-      elm.parentNode.parentNode.classList.remove("is-hovered");
       setShowEditor(true);
     }
   }, []);

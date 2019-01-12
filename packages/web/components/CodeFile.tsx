@@ -85,9 +85,7 @@ const setIsHovered = (
   }
   if (elm && parent) {
     let isOverLine =
-      type == "mouseover" &&
-      elm.classList.contains("token-line") &&
-      !elm.classList.contains("is-selected");
+      type == "mouseover" && elm.classList.contains("token-line");
 
     let numberElm = elm.childNodes[0];
     const currentLine = +numberElm.dataset.lineNumber;
