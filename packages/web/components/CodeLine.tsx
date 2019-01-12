@@ -3,7 +3,7 @@ import { AddComment } from "./CommentSection";
 import { CommentProps, CommentBox } from "./commentUI";
 import { getScrollY } from "../utils/domScrollUtils";
 import { CodeFileContext } from "./CodeFileContext";
-import { styled, MyButton } from "@codeponder/ui";
+import { styled } from "@codeponder/ui";
 
 interface RenderLineProps {
   comments: CommentProps[];
@@ -16,10 +16,8 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   line,
   lineNum,
 }) => {
-  const discussionRef = useRef<HTMLDivElement>(null);
   const { owner } = useContext(CodeFileContext);
   const [showEditor, setShowEditor] = useState(false);
-  const [showDiscussion, setShowDiscussion] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
 
   let preventScroll = false;
@@ -70,85 +68,26 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       elm.classList.contains("btn-reply")
     ) {
       setShowEditor(true);
-    } else if (elm.classList.contains("discussion-badge")) {
-      elm.classList.toggle("is-open");
-      if (discussionRef.current) {
-        discussionRef.current!.classList.toggle("is-open");
-        setTimeout(() => {
-          setShowDiscussion(val => !val);
-        }, 400);
-      } else {
-        setShowDiscussion(val => !val);
-      }
     }
   }, []);
 
-  useEffect(
-    () => {
-      if (showDiscussion) {
-        discussionRef.current!.classList.toggle("is-open");
-      }
-    },
-    [showDiscussion]
-  );
-
   /*
   TODO:
-  - fix selecting line position when new comments opens
   - move style to Pre style component or to Comments style component
   - add new style to comments nav bar
   - add actions to the nav bar
   - add top nav bar
-
-  - go back div layout and not table now that i dont move the content box right after the numbers col
-  */
-
-  // console.log("RenderLine", lineNum);
-
-  const getLineWithCount = useCallback(
-    () => {
-      const count = commentsForRow.length;
-      if (count) {
-        /*
-        TODO
-        https://stackoverflow.com/questions/43416939/how-to-convert-jsx-to-string
-        */
-        const badge = `
-          <button class="token-btn discussion-badge">
-            <span class="badge-counter">${count}</span>
-            <span class="badge-icon">▾</span>
-          </button>`
-          .split("\n")
-          .map(item => item.trim())
-          .join("");
-        return `${badge}${line}`;
-      }
-      return line;
-    },
-    [commentsForRow]
-  );
+    */
 
   return (
     <div key={lineNum} className="token-line">
       <span className="line-number" data-line-number={lineNum} />
       <span
         className="token-html"
-        dangerouslySetInnerHTML={{ __html: getLineWithCount() }}
+        dangerouslySetInnerHTML={{ __html: line }}
         onClick={onOpenEditor}
       />
-      {showDiscussion && commentsForRow.length > 0 && (
-        <div ref={discussionRef} className="discussion-container">
-          <Discussion
-            {...{
-              comments: commentsForRow,
-              onOpenEditor,
-              // showEditor,
-              // lineNum,
-              // onEditorSubmit,
-            }}
-          />
-        </div>
-      )}
+      <Discussion comments={commentsForRow} onOpenEditor={onOpenEditor} />
       {showEditor && (
         <AddComment
           comments={commentsForRow}
@@ -166,156 +105,99 @@ const DiscussionNavBar = styled.div`
   padding: 10px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
 
   & .header-title {
     font-weight: 400;
     line-height: 1.125;
     margin-bottom: 0;
     word-wrap: break-word;
-
-    & .discussion-number {
-      color: #a3aab1;
-      font-weight: 300;
-      letter-spacing: -1px;
-    }
   }
 
-  & button {
-    padding: 0.5em;
+  & .header-sub-title {
+    color: #a3aab1;
+    font-weight: 300;
+    letter-spacing: -1px;
   }
-
-  & .toggle-discussion {
-    cursor: pointer;
-    font-size: 1.5em;
-    margin: 0 0 0 0.3em;
-    opacity: 1;
-    padding: 0 0.3em;
-    vertical-align: middle;
-
-    &:hover {
-      opacity: 0.8;
-    }
-
-    & span {
-      display: block;
-      transition: transform 0.3s ease-in-out;
-      &.is-open {
-        transform: rotate(0.5turn);
-      }
-    }
-  }
-`;
-
-const DiscussionContent = styled.div`
-  /* max-height: 0;
-  opacity: 0;
-  transition: all 0.3s ease;
-
-  &.is-open {
-    max-height: 2000px;
-    opacity: 1;
-  } */
 `;
 
 interface DiscussionProps {
   comments: CommentProps[];
-  // showEditor: boolean;
-  // lineNum: number;
   onOpenEditor: (props: any) => any;
-  // onEditorSubmit: (T?: any) => void;
 }
 
 const COLLAPSE = "Collapse this discussion";
 const EXPANDED = "Expanded this discussion";
 
-const Discussion: React.FC<DiscussionProps> = ({
-  comments,
-  // showEditor,
-  // lineNum,
-  onOpenEditor,
-  // onEditorSubmit,
-}) => {
-  // const contentRef = useRef<HTMLDivElement>(null);
+const lineNumbers = (comment: CommentProps) => {
+  const { startingLineNum, endingLineNum } = comment;
+  if (startingLineNum == endingLineNum) {
+    return `Line ${startingLineNum}`;
+  }
+  return `Lines ${startingLineNum} - ${endingLineNum}`;
+};
 
-  // const [showDiscussion, setDiscussion] = useState(true);
+const Discussion: React.FC<DiscussionProps> = ({ comments, onOpenEditor }) => {
+  const count = comments.length;
+  if (!count) {
+    return null;
+  }
 
-  // const toggleDiscussionView = useCallback((e: any) => {
-  //   const icon = e.target.firstChild;
-  //   icon.classList.toggle("is-open");
-  //   if (contentRef.current) {
-  //     contentRef.current!.classList.toggle("is-open");
-  //     setTimeout(() => {
-  //       setDiscussion(val => !val);
-  //     }, 300);
-  //   } else {
-  //     setDiscussion(val => !val);
-  //   }
-  // }, []);
+  const discussionRef = useRef<HTMLDivElement>(null);
+  const [showDiscussion, setShowDiscussion] = useState(false);
 
-  // useEffect(
-  //   () => {
-  //     if (showDiscussion) {
-  //       contentRef.current!.classList.toggle("is-open");
-  //     }
-  //   },
-  //   [showDiscussion]
-  // );
-
-  const lineNumbers = useCallback(() => {
-    const { startingLineNum, endingLineNum } = comments[0];
-    if (startingLineNum == endingLineNum) {
-      return `Line ${startingLineNum}`;
+  const onToggleDiscussion = useCallback(({ target: elm }: any) => {
+    if (elm.classList.contains("discussion-badge")) {
+      elm.classList.toggle("is-open");
+      if (discussionRef.current) {
+        discussionRef.current!.classList.remove("is-open");
+        // remove the component after the transition ends
+        setTimeout(() => {
+          setShowDiscussion(false);
+        }, 400);
+      } else {
+        setShowDiscussion(true);
+      }
     }
-    return `Lines ${startingLineNum} - ${endingLineNum}`;
   }, []);
+
+  useEffect(
+    () => {
+      if (showDiscussion) {
+        discussionRef.current!.classList.add("is-open");
+      }
+    },
+    [showDiscussion]
+  );
 
   return (
     <>
-      {comments.length && (
-        <>
-          <DiscussionNavBar>
-            <h2 className="header-title">
-              <span className="discussion-title">Title placeholder</span>{" "}
-              <span className="discussion-number">#???</span>
-              <span
-                className="discussion-number"
-                style={{ marginLeft: "2rem", fontSize: "1.5rem" }}
-              >
-                {lineNumbers()}
+      <button
+        className="token-btn discussion-badge"
+        title={showDiscussion ? COLLAPSE : EXPANDED}
+        onClick={onToggleDiscussion}
+      >
+        <span className="badge-counter">{count}</span>
+        <span className="badge-icon">▾</span>
+      </button>
+      {showDiscussion && (
+        <div ref={discussionRef} className="discussion-container">
+          <div className="discussion-inner-box">
+            <DiscussionNavBar>
+              <h2 className="header-title">
+                <span className="discussion-title">Title placeholder</span>{" "}
+                <span className="header-sub-title">#???</span>
+              </h2>
+              <span className="header-sub-title">
+                {lineNumbers(comments[0])}
               </span>
-            </h2>
-            {/*             <div>
-              <MyButton variant="primary" className="toggle-discussion">
-                <span>2</span>
-              </MyButton>
-              <button>Add Reply ↓</button>
-              <MyButton
-                variant="primary"
-                className="toggle-discussion"
-                title={showDiscussion ? EXPANDED : COLLAPSE}
-                onClick={toggleDiscussionView}
-              >
-                <span>▾</span>
-              </MyButton>
-            </div> */}
-          </DiscussionNavBar>
-          {/*           {showDiscussion && (
-            <DiscussionContent ref={contentRef}> */}
-          {comments.map((comment, key) => {
-            return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-          })}
-          {/*             </DiscussionContent>
-          )} */}
-        </>
+            </DiscussionNavBar>
+            {comments.map((comment, key) => {
+              return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+            })}
+          </div>
+        </div>
       )}
-      {/* showEditor && (
-        <AddComment
-          comments={comments}
-          line={lineNum}
-          onEditorSubmit={onEditorSubmit}
-        />
-      ) */}
     </>
   );
 };

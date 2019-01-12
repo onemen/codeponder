@@ -154,14 +154,16 @@ const Pre = styled.pre`
 
   & .discussion-container {
     background: #ffffff;
-    border-top: 1px solid #dfe2e5;
-    border-bottom: 1px solid #dfe2e5;
 
-    max-height: 0;
-    opacity: 0;
-    transition: all 400ms ease;
+    & .discussion-inner-box {
+      border-top: 1px solid #dfe2e5;
+      border-bottom: 1px solid #dfe2e5;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 400ms, opacity 600ms ease;
+    }
 
-    &.is-open {
+    &.is-open > .discussion-inner-box {
       max-height: 2000px;
       opacity: 1;
     }
@@ -176,11 +178,6 @@ export const CodeCard: React.FunctionComponent<Props> = ({
   ...props
 }) => (
   <Pre className={`code-content language-${lang}`} {...props}>
-    {/*     <code className={`language-${lang}`}>
-      <table>
-        <tbody>{children}</tbody>
-      </table>
-    </code> */}
     <code className={`language-${lang}`}>{children}</code>
   </Pre>
 );
