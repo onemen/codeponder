@@ -30,20 +30,6 @@ const Pre = styled.pre`
     padding: 0;
   }
 
-  & .line-number {
-    color: #999;
-    padding-left: 0.625em;
-    padding-right: 0.625em;
-    text-align: right;
-    user-select: none;
-    min-width: 3em;
-    width: 1%;
-
-    &::before {
-      content: attr(data-line-number);
-    }
-  }
-
   & .token-line {
     &.is-selected {
       background: hsla(24, 20%, 50%, 0.08);
@@ -55,8 +41,20 @@ const Pre = styled.pre`
     }
 
     & .token-html {
-      padding-left: 0.8em;
+      padding-left: 0.625em;
       padding-right: 0.625em;
+
+      /* line-number */
+      &::before {
+        content: attr(data-line-number);
+        color: #999;
+        display: inline-block;
+        letter-spacing: -1px;
+        padding-right: 1.5em;
+        text-align: right;
+        user-select: none;
+        min-width: 3em;
+      }
     }
   }
 
@@ -101,7 +99,7 @@ const Pre = styled.pre`
   }
 
   &:not(.js-select-line) {
-    & .token-line.is-hovered {
+    & .token-line:not(.is-selected).is-hovered {
       & .btn-open-edit {
         opacity: 1;
         cursor: pointer;

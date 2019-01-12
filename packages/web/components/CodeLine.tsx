@@ -73,13 +73,13 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   return (
     <div key={lineNum} className="token-line">
-      <span className="line-number" data-line-number={lineNum} />
       <span
         className="token-html"
+        data-line-number={lineNum}
         dangerouslySetInnerHTML={{ __html: line }}
         onClick={onOpenEditor}
       />
-      {commentsForRow.length && (
+      {commentsForRow.length > 0 && (
         <Discussion comments={commentsForRow} onOpenEditor={onOpenEditor} />
       )}
       {showEditor && (
