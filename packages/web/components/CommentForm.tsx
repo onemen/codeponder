@@ -26,7 +26,7 @@ const FormInput = styled(BlueInput)`
       0 0 0 0.2em rgba(3, 102, 214, 0.3);
   }
 
-  /* hide spinners on number input filed */
+  /* hide spinners on number input field */
   &[type="number"]::-webkit-inner-spin-button,
   &[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -120,14 +120,16 @@ export const TextEditor = (props: TextEditorProps) => {
     { end, endingLineNumChange, endInput },
   ] = useSelectedLines(startingLineNum, endingLineNum, view);
 
-  // validate filed
+  // validate fields
   const titleTrimmed = (() => title.trim())();
   const textTrimmed = (() => text.trim())();
   const validateStartEnd =
     !startInput.current ||
     !endInput.current ||
     (startInput.current!.validity.valid && endInput.current!.validity.valid);
-  const isValidForm = titleTrimmed && textTrimmed && validateStartEnd;
+  const isValidForm = isReplay
+    ? textTrimmed
+    : titleTrimmed && textTrimmed && validateStartEnd;
 
   // focus title / textarea
   useEffect(() => {
