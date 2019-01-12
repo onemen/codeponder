@@ -17,22 +17,10 @@ const icons = {
   },
 };
 
-// interface SVG {
-//   viewBox: string;
-//   width: number;
-//   height: number;
-//   d: string;
-// }
-
-// interface ICONS {
-//   [key: string]: SVG;
-// }
-
 const StyledButton = styled.button`
   appearance: none;
   border: none;
   text-align: center;
-  /*font-family: "Rubik", sans-serif;*/
   text-transform: uppercase;
   font-weight: 500;
   cursor: pointer;
@@ -88,20 +76,4 @@ const getSvg = (name: string) => {
 export const IconButton: React.FunctionComponent<Props> = ({
   icon,
   ...props
-}) => (
-  <StyledButton {...props}>
-    {getSvg(icon || "")}
-    {false && icon ? (
-      <svg
-        viewBox="0 0 12 16"
-        version="1.1"
-        width="12"
-        height="16"
-        aria-hidden="true"
-        preserveAspectRatio="xMaxYMax meet"
-      >
-        <path fillRule="evenodd" d={icon} />
-      </svg>
-    ) : null}
-  </StyledButton>
-);
+}) => <StyledButton {...props}>{getSvg(icon || "")}</StyledButton>;

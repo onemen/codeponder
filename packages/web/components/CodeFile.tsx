@@ -105,12 +105,7 @@ const setIsHovered = (
   }
 };
 
-const PLUSBUTTON = `<button class="btn-open-edit token-btn hidden">
-    <svg viewBox="0 0 12 16" version="1.1" width="12" height="16"
-      aria-hidden="true" preserveAspectRatio="xMaxYMax meet">
-      <path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path>
-    </svg>
-  </button>`;
+const PLUSBUTTON = `<button class="btn-open-edit token-btn hidden"><span>+</span></button>`;
 
 const useHighlight = (lang: string, code: string) => {
   const hasLoadedLanguage = useRef(false);
