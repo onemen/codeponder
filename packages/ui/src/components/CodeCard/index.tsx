@@ -87,13 +87,6 @@ const Pre = styled.pre`
       opacity: 0;
     }
 
-    & svg {
-      display: inline-block;
-      fill: currentColor;
-      vertical-align: text-top;
-      pointer-events: none;
-    }
-
     & span {
       font-size: 16px;
       line-height: 1;
