@@ -22,23 +22,16 @@ interface loadingCodeState {
  *
  */
 const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
-  let offset = 0;
   const styles = prop.reduce((total, current) => {
-    const { startingLineNum, endingLineNum, numReplies } = current;
+    const { startingLineNum, endingLineNum } = current;
     total += `
-     & .token-line:nth-child(n+${startingLineNum +
-       offset}):nth-child(-n+${endingLineNum + offset}) {
+     & .token-line:nth-child(n+${startingLineNum}):nth-child(-n+${endingLineNum}) {
       background: hsla(24, 20%, 50%,.08);
       background: linear-gradient(to right, hsla(24, 20%, 50%,.1) 70%, hsla(24, 20%, 50%,0));
     }
      `;
-    offset += numReplies + 1;
     return total;
   }, "");
-
-  //TODO : need a fix ! line position is wrong
-  // maybe it is simple to add class to each line when i add the line to the page
-  // then it is simple to check in setIsHovered
 
   return css`
     ${styles}

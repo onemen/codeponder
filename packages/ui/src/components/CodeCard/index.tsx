@@ -96,31 +96,6 @@ const Pre = styled.pre`
   }
 
   & .discussion-badge {
-    background-color: ${p => p.theme.colors.primary[3]};
-    border-radius: 50%;
-    color: ${p => p.theme.colors.primary[2]};
-    cursor: pointer;
-    font-size: 10px;
-    margin: 0;
-    padding: 2px;
-    position: absolute;
-    right: 10px;
-    transform: scale(1);
-    transition: transform 0.1s ease-in-out;
-    width: 20px;
-    height: 20px;
-
-    &:hover {
-      transform: scale(1.2);
-    }
-
-    &::before {
-      /* content: attr(data-discussion-count); */
-      content: "2";
-    }
-  }
-
-  & .discussion-badge1 {
     background-color: transparent;
     color: ${p => p.theme.colors.primary[2]};
     cursor: pointer;
@@ -128,7 +103,7 @@ const Pre = styled.pre`
     height: 22px;
     line-height: 1;
     position: absolute;
-    right: 50px;
+    right: 0;
     transform: scale(1);
     transition: transform 0.1s ease-in-out;
     &:hover {
@@ -144,13 +119,17 @@ const Pre = styled.pre`
       padding: 5.5px 0;
       width: 20px;
       height: 20px;
-      /* &::before {
-        content: attr(data-discussion-count);
-      } */
     }
+
     & .badge-icon {
+      display: inline-block;
       font-size: 20px;
       vertical-align: middle;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    &.is-open .badge-icon {
+      transform: rotate(0.5turn);
     }
   }
 
@@ -174,8 +153,18 @@ const Pre = styled.pre`
   }
 
   & .discussion-container {
+    background: #ffffff;
     border-top: 1px solid #dfe2e5;
     border-bottom: 1px solid #dfe2e5;
+
+    max-height: 0;
+    opacity: 0;
+    transition: all 400ms ease;
+
+    &.is-open {
+      max-height: 2000px;
+      opacity: 1;
+    }
   }
 
   ${(p: styleProps) => p.selectedLines}
@@ -187,10 +176,11 @@ export const CodeCard: React.FunctionComponent<Props> = ({
   ...props
 }) => (
   <Pre className={`code-content language-${lang}`} {...props}>
-    <code className={`language-${lang}`}>
+    {/*     <code className={`language-${lang}`}>
       <table>
         <tbody>{children}</tbody>
       </table>
-    </code>
+    </code> */}
+    <code className={`language-${lang}`}>{children}</code>
   </Pre>
 );

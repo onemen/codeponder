@@ -16,8 +16,10 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   line,
   lineNum,
 }) => {
+  const discussionRef = useRef<HTMLDivElement>(null);
   const { owner } = useContext(CodeFileContext);
   const [showEditor, setShowEditor] = useState(false);
+  const [showDiscussion, setShowDiscussion] = useState(false);
   const [commentsForRow, setCommentsForRow] = useState(comments || []);
 
   let preventScroll = false;
@@ -68,8 +70,27 @@ export const RenderLine: React.FC<RenderLineProps> = ({
       elm.classList.contains("btn-reply")
     ) {
       setShowEditor(true);
+    } else if (elm.classList.contains("discussion-badge")) {
+      elm.classList.toggle("is-open");
+      if (discussionRef.current) {
+        discussionRef.current!.classList.toggle("is-open");
+        setTimeout(() => {
+          setShowDiscussion(val => !val);
+        }, 400);
+      } else {
+        setShowDiscussion(val => !val);
+      }
     }
   }, []);
+
+  useEffect(
+    () => {
+      if (showDiscussion) {
+        discussionRef.current!.classList.toggle("is-open");
+      }
+    },
+    [showDiscussion]
+  );
 
   /*
   TODO:
@@ -79,7 +100,7 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   - add actions to the nav bar
   - add top nav bar
 
-  - go back div layout and not tabl now that i dont move the content box right after the numbers col
+  - go back div layout and not table now that i dont move the content box right after the numbers col
   */
 
   // console.log("RenderLine", lineNum);
@@ -88,20 +109,15 @@ export const RenderLine: React.FC<RenderLineProps> = ({
     () => {
       const count = commentsForRow.length;
       if (count) {
-        // return `<button class="discussion-badge"><span>${count}</span></button>${line}`;
-        // return `<button class="discussion-badge" data-discussion-count="${count}"/>${line}`;
-
-        // return `<button class="discussion-badge token-btn"><span>${count}</span></button>${line}`;
-        // return `<button class="discussion-badge token-btn" data-discussion-count="${count}"/>${line}`;
-        // return `<button class="discussion-badge token-btn" data-discussion-count="${count}"></button>${line}`;
-
+        /*
+        TODO
+        https://stackoverflow.com/questions/43416939/how-to-convert-jsx-to-string
+        */
         const badge = `
-        <button class="discussion-badge token-btn" data-discussion-count="${count}"></button>
-        <button class="token-btn discussion-badge1">
-        <span class="badge-counter" Xdata-discussion-count="${count}">${count}</span>
-        <span class="badge-icon">▾</span>
-        </button>
-        `
+          <button class="token-btn discussion-badge">
+            <span class="badge-counter">${count}</span>
+            <span class="badge-icon">▾</span>
+          </button>`
           .split("\n")
           .map(item => item.trim())
           .join("");
@@ -113,32 +129,34 @@ export const RenderLine: React.FC<RenderLineProps> = ({
   );
 
   return (
-    <>
-      <tr key={lineNum} className="token-line">
-        <td className="line-number" data-line-number={lineNum} />
-        <td
-          className="token-html"
-          dangerouslySetInnerHTML={{ __html: getLineWithCount() }}
-          // dangerouslySetInnerHTML={{ __html: line }}
-          onClick={onOpenEditor}
-        />
-      </tr>
-      {(showEditor || commentsForRow.length > 0) && (
-        <tr className="discussion-container">
-          <td colSpan={2}>
-            <Discussion
-              {...{
-                comments: commentsForRow,
-                onOpenEditor,
-                showEditor,
-                lineNum,
-                onEditorSubmit,
-              }}
-            />
-          </td>
-        </tr>
+    <div key={lineNum} className="token-line">
+      <span className="line-number" data-line-number={lineNum} />
+      <span
+        className="token-html"
+        dangerouslySetInnerHTML={{ __html: getLineWithCount() }}
+        onClick={onOpenEditor}
+      />
+      {showDiscussion && commentsForRow.length > 0 && (
+        <div ref={discussionRef} className="discussion-container">
+          <Discussion
+            {...{
+              comments: commentsForRow,
+              onOpenEditor,
+              // showEditor,
+              // lineNum,
+              // onEditorSubmit,
+            }}
+          />
+        </div>
       )}
-    </>
+      {showEditor && (
+        <AddComment
+          comments={commentsForRow}
+          line={lineNum}
+          onEditorSubmit={onEditorSubmit}
+        />
+      )}
+    </div>
   );
 };
 
@@ -183,29 +201,29 @@ const DiscussionNavBar = styled.div`
       display: block;
       transition: transform 0.3s ease-in-out;
       &.is-open {
-        transform: rotate(180deg);
+        transform: rotate(0.5turn);
       }
     }
   }
 `;
 
 const DiscussionContent = styled.div`
-  max-height: 0;
+  /* max-height: 0;
   opacity: 0;
   transition: all 0.3s ease;
 
   &.is-open {
     max-height: 2000px;
     opacity: 1;
-  }
+  } */
 `;
 
 interface DiscussionProps {
   comments: CommentProps[];
-  showEditor: boolean;
-  lineNum: number;
+  // showEditor: boolean;
+  // lineNum: number;
   onOpenEditor: (props: any) => any;
-  onEditorSubmit: (T?: any) => void;
+  // onEditorSubmit: (T?: any) => void;
 }
 
 const COLLAPSE = "Collapse this discussion";
@@ -213,36 +231,36 @@ const EXPANDED = "Expanded this discussion";
 
 const Discussion: React.FC<DiscussionProps> = ({
   comments,
-  showEditor,
-  lineNum,
+  // showEditor,
+  // lineNum,
   onOpenEditor,
-  onEditorSubmit,
+  // onEditorSubmit,
 }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
+  // const contentRef = useRef<HTMLDivElement>(null);
 
-  const [showDiscussion, setDiscussion] = useState(false);
+  // const [showDiscussion, setDiscussion] = useState(true);
 
-  const toggleDiscussionView = useCallback((e: any) => {
-    const icon = e.target.firstChild;
-    icon.classList.toggle("is-open");
-    if (contentRef.current) {
-      contentRef.current!.classList.toggle("is-open");
-      setTimeout(() => {
-        setDiscussion(val => !val);
-      }, 300);
-    } else {
-      setDiscussion(val => !val);
-    }
-  }, []);
+  // const toggleDiscussionView = useCallback((e: any) => {
+  //   const icon = e.target.firstChild;
+  //   icon.classList.toggle("is-open");
+  //   if (contentRef.current) {
+  //     contentRef.current!.classList.toggle("is-open");
+  //     setTimeout(() => {
+  //       setDiscussion(val => !val);
+  //     }, 300);
+  //   } else {
+  //     setDiscussion(val => !val);
+  //   }
+  // }, []);
 
-  useEffect(
-    () => {
-      if (showDiscussion) {
-        contentRef.current!.classList.toggle("is-open");
-      }
-    },
-    [showDiscussion]
-  );
+  // useEffect(
+  //   () => {
+  //     if (showDiscussion) {
+  //       contentRef.current!.classList.toggle("is-open");
+  //     }
+  //   },
+  //   [showDiscussion]
+  // );
 
   const lineNumbers = useCallback(() => {
     const { startingLineNum, endingLineNum } = comments[0];
@@ -267,7 +285,7 @@ const Discussion: React.FC<DiscussionProps> = ({
                 {lineNumbers()}
               </span>
             </h2>
-            <div>
+            {/*             <div>
               <MyButton variant="primary" className="toggle-discussion">
                 <span>2</span>
               </MyButton>
@@ -280,24 +298,24 @@ const Discussion: React.FC<DiscussionProps> = ({
               >
                 <span>▾</span>
               </MyButton>
-            </div>
+            </div> */}
           </DiscussionNavBar>
-          {showDiscussion && (
-            <DiscussionContent ref={contentRef}>
-              {comments.map((comment, key) => {
-                return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
-              })}
-            </DiscussionContent>
-          )}
+          {/*           {showDiscussion && (
+            <DiscussionContent ref={contentRef}> */}
+          {comments.map((comment, key) => {
+            return <CommentBox {...{ ...comment, key, onOpenEditor }} />;
+          })}
+          {/*             </DiscussionContent>
+          )} */}
         </>
       )}
-      {showEditor && (
+      {/* showEditor && (
         <AddComment
           comments={comments}
           line={lineNum}
           onEditorSubmit={onEditorSubmit}
         />
-      )}
+      ) */}
     </>
   );
 };
