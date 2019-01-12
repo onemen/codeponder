@@ -35,6 +35,11 @@ const SelectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
     offset += numReplies + 1;
     return total;
   }, "");
+
+  //TODO : need a fix ! line position is wrong
+  // maybe it is simple to add class to each line when i add the line to the page
+  // then it is simple to check in setIsHovered
+
   return css`
     ${styles}
   `;
@@ -97,6 +102,7 @@ const setIsHovered = (
         q => currentLine >= q.startingLineNum && currentLine <= q.endingLineNum
       );
     }
+
     parent
       .querySelectorAll(".is-hovered")
       .forEach((elm: Element) => elm.classList.remove("is-hovered"));
@@ -106,7 +112,7 @@ const setIsHovered = (
   }
 };
 
-const PLUSBUTTON = `<button variant="primary" class="btn-open-edit hidden">
+const PLUSBUTTON = `<button class="btn-open-edit token-btn hidden">
     <svg viewBox="0 0 12 16" version="1.1" width="12" height="16"
       aria-hidden="true" preserveAspectRatio="xMaxYMax meet">
       <path fill-rule="evenodd" d="M12 9H7v5H5V9H0V7h5V2h2v5h5v2z"></path>

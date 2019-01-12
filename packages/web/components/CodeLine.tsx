@@ -73,10 +73,13 @@ export const RenderLine: React.FC<RenderLineProps> = ({
 
   /*
   TODO:
+  - fix selecting line position when new comments opens
   - move style to Pre style component or to Comments style component
   - add new style to comments nav bar
   - add actions to the nav bar
   - add top nav bar
+
+  - go back div layout and not tabl now that i dont move the content box right after the numbers col
   */
 
   // console.log("RenderLine", lineNum);
@@ -85,7 +88,24 @@ export const RenderLine: React.FC<RenderLineProps> = ({
     () => {
       const count = commentsForRow.length;
       if (count) {
-        return `<button class="comment-count-btn">${count}</button>${line}`;
+        // return `<button class="discussion-badge"><span>${count}</span></button>${line}`;
+        // return `<button class="discussion-badge" data-discussion-count="${count}"/>${line}`;
+
+        // return `<button class="discussion-badge token-btn"><span>${count}</span></button>${line}`;
+        // return `<button class="discussion-badge token-btn" data-discussion-count="${count}"/>${line}`;
+        // return `<button class="discussion-badge token-btn" data-discussion-count="${count}"></button>${line}`;
+
+        const badge = `
+        <button class="discussion-badge token-btn" data-discussion-count="${count}"></button>
+        <button class="token-btn discussion-badge1">
+        <span class="badge-counter" Xdata-discussion-count="${count}">${count}</span>
+        <span class="badge-icon">▾</span>
+        </button>
+        `
+          .split("\n")
+          .map(item => item.trim())
+          .join("");
+        return `${badge}${line}`;
       }
       return line;
     },
@@ -98,8 +118,8 @@ export const RenderLine: React.FC<RenderLineProps> = ({
         <td className="line-number" data-line-number={lineNum} />
         <td
           className="token-html"
-          // dangerouslySetInnerHTML={{ __html: getLineWithCount() }}
-          dangerouslySetInnerHTML={{ __html: line }}
+          dangerouslySetInnerHTML={{ __html: getLineWithCount() }}
+          // dangerouslySetInnerHTML={{ __html: line }}
           onClick={onOpenEditor}
         />
       </tr>
@@ -248,6 +268,9 @@ const Discussion: React.FC<DiscussionProps> = ({
               </span>
             </h2>
             <div>
+              <MyButton variant="primary" className="toggle-discussion">
+                <span>2</span>
+              </MyButton>
               <button>Add Reply ↓</button>
               <MyButton
                 variant="primary"

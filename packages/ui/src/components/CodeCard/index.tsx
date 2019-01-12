@@ -60,19 +60,20 @@ const Pre = styled.pre`
     }
   }
 
-  & .btn-open-edit {
+  & .token-btn {
     appearance: none;
     border: none;
+    font-family: "Rubik", sans-serif;
+    font-weight: 500;
     text-align: center;
     text-transform: uppercase;
-    font-weight: 500;
+  }
 
-    /* primary */
-    background-color: #6dc1fd;
+  & .btn-open-edit {
+    /* primary color */
+    background-color: ${p => p.theme.colors.primary[3]};
     color: #ffffff;
     font-size: 1.4rem;
-    padding: 0.8rem 1rem;
-    text-transform: uppercase;
     border-radius: 0.4rem;
 
     margin: -2px 0px -2px -20px;
@@ -91,6 +92,65 @@ const Pre = styled.pre`
       fill: currentColor;
       vertical-align: text-top;
       pointer-events: none;
+    }
+  }
+
+  & .discussion-badge {
+    background-color: ${p => p.theme.colors.primary[3]};
+    border-radius: 50%;
+    color: ${p => p.theme.colors.primary[2]};
+    cursor: pointer;
+    font-size: 10px;
+    margin: 0;
+    padding: 2px;
+    position: absolute;
+    right: 10px;
+    transform: scale(1);
+    transition: transform 0.1s ease-in-out;
+    width: 20px;
+    height: 20px;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    &::before {
+      /* content: attr(data-discussion-count); */
+      content: "2";
+    }
+  }
+
+  & .discussion-badge1 {
+    background-color: transparent;
+    color: ${p => p.theme.colors.primary[2]};
+    cursor: pointer;
+    width: 36px;
+    height: 22px;
+    line-height: 1;
+    position: absolute;
+    right: 50px;
+    transform: scale(1);
+    transition: transform 0.1s ease-in-out;
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    & .badge-counter {
+      background-color: ${p => p.theme.colors.primary[3]};
+      border-radius: 50%;
+      display: inline-block;
+      font-size: 10px;
+      margin: 0;
+      padding: 5.5px 0;
+      width: 20px;
+      height: 20px;
+      /* &::before {
+        content: attr(data-discussion-count);
+      } */
+    }
+    & .badge-icon {
+      font-size: 20px;
+      vertical-align: middle;
     }
   }
 
