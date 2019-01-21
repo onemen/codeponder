@@ -1,7 +1,6 @@
 import { distanceInWordsStrict } from "date-fns";
 import * as React from "react";
 import { Card, Flex, Text } from "rebass";
-import Markdown from "markdown-to-jsx";
 import styled from "../../theme/styled-components";
 import { Avatar } from "../Avatar";
 import { Icon } from "../Icon";
@@ -168,7 +167,7 @@ const BaseCommentCard = ({
         fontSize={2}
         color="#78909C"
       >
-        {title ? title : (<Markdown>{text}</Markdown>)}
+        {title || text}
       </Text>
     </>
   );

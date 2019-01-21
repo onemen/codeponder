@@ -1,4 +1,5 @@
 import { CommentCard, styled } from "@codeponder/ui";
+import { compiler as markdown } from "markdown-to-jsx";
 import React, { useContext, useState } from "react";
 import { CodeReviewQuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestionReply } from "../CreateQuestionReply";
@@ -83,9 +84,11 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
             <span className="header-sub-title">{question.lineNum}</span>
           </DiscussionNavBar>
           {[question, ...question.replies].map((reply, key) => {
+            const { text, ...props } = reply;
             return (
               <CommentCard
-                {...reply}
+                {...props}
+                text={markdown(text)}
                 isOwner={reply.creator.id === owner}
                 key={key}
                 onReplyClick={() => setShowReply(true)}
