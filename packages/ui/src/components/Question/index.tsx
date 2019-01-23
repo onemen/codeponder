@@ -65,8 +65,14 @@ const CommentContainer = styled(Card as any)`
 
   & .comment-text {
     margin: 0;
-    padding: 0.7rem;
+    padding: 0.7rem 1.4rem;
     white-space: normal;
+
+    & ol,
+    & ul,
+    & dl {
+      padding-left: 1.5em;
+    }
   }
 
   & .btn-reply {
@@ -163,9 +169,11 @@ const BaseCommentCard = ({
       <Text
         className="comment-text"
         my="1rem"
-        fontFamily="rubik"
+        // fontFamily="rubik"
+        fontFamily="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol"
         fontSize={2}
-        color="#78909C"
+        // color="#78909C"
+        color="rgb(36, 41, 46)"
       >
         {title || text}
       </Text>

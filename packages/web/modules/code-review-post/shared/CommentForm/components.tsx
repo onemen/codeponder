@@ -50,3 +50,33 @@ export const FormContainer = styled.form`
     visibility: visible;
   }
 `;
+
+export const EditorContainer = styled.div`
+  border: 1px solid rgb(209, 213, 218);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 1rem 0.9rem;
+  padding: 0;
+
+  & .editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+
+    & a {
+      display: flex;
+      align-items: center;
+
+      & svg {
+        margin-right: 1rem;
+      }
+    }
+
+    & .btn-box {
+      & button {
+        min-width: 6em;
+      }
+    }
+  }
+`;

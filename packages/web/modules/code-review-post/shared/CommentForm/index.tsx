@@ -1,10 +1,11 @@
-import { MyButton } from "@codeponder/ui";
+import { Icon, MyButton } from "@codeponder/ui";
 import { Field, Formik } from "formik";
 import React, { useCallback, useEffect, useRef } from "react";
 import * as yup from "yup";
+import { EditorComponent } from "../../../../components/editor";
 import { scrollToView } from "../../../../utils/domScrollUtils";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
-import { FormContainer, FormRow, Separator } from "./components";
+import { EditorContainer, FormContainer, FormRow } from "./components";
 
 export interface TextEditorProps {
   isReply: boolean;
@@ -100,7 +101,7 @@ export const CommentForm = ({
         }
       }}
     >
-      {({ isValid, handleSubmit }) => {
+      {({ isValid, handleSubmit, values }) => {
         return (
           <FormContainer
             onSubmit={handleSubmit}
@@ -120,37 +121,38 @@ export const CommentForm = ({
                 />
               </FormRow>
             )}
-            <FormRow>
-              <Field
-                component={CommentInputField}
-                autoFocus={isReply}
-                minHeight="100px"
-                name="text"
-                placeholder={isReply ? "Type your Reply" : "Type your Question"}
-                as="textarea"
-              />
-            </FormRow>
-            <Separator />
-            <div className="btn-box">
-              {view === "code-view" && (
-                <MyButton
-                  type="button"
-                  variant="form"
-                  className="btn"
-                  onClick={onCancel}
+            <EditorContainer>
+              <EditorComponent isReply={isReply} text={values.text} />
+              <div className="editor-footer">
+                <a
+                  href="https://guides.github.com/features/mastering-markdown"
+                  target="_blank"
                 >
-                  Cancel
-                </MyButton>
-              )}
-              <MyButton
-                type="submit"
-                variant="form"
-                disabled={!isValid}
-                className={`primary ${isValid ? "" : "disabled"}`}
-              >
-                Save
-              </MyButton>
-            </div>
+                  <Icon size={16} name="markdown" fill="#000" />
+                  Styling with Markdown is supported
+                </a>
+                <div className="btn-box">
+                  {view === "code-view" && (
+                    <MyButton
+                      type="button"
+                      variant="form"
+                      className="btn"
+                      onClick={onCancel}
+                    >
+                      Cancel
+                    </MyButton>
+                  )}
+                  <MyButton
+                    type="submit"
+                    variant="form"
+                    disabled={!isValid}
+                    className={`primary ${isValid ? "" : "disabled"}`}
+                  >
+                    Save
+                  </MyButton>
+                </div>
+              </div>
+            </EditorContainer>
           </FormContainer>
         );
       }}
