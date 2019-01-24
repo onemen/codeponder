@@ -1,13 +1,8 @@
 import { BlueInput, styled } from "@codeponder/ui";
 import { Field } from "formik";
-import marked from "marked";
 import React, { useCallback, useRef, useState } from "react";
-import { CommentInputField } from "../modules/shared/formik-fields/CommentInputField";
-import { filenameToLang } from "../utils/filenameToLang";
-import { getHighlightedCode } from "../utils/highlightCode";
-// import Markdown, { compiler as markdown } from "markdown-to-jsx";
-// import "./markdown.css";
-import "./github-markdown.css";
+import { CommentInputField } from "../../modules/shared/formik-fields/CommentInputField";
+import { loadLanguagesForMarkdown, MarkdownPreview } from "./MarkdownPreview";
 
 interface FormInputProps {
   minHeight?: string;
@@ -109,69 +104,6 @@ const EditorContainer = styled.div`
 const getPanelForTab = (container: HTMLDivElement, tab: HTMLButtonElement) =>
   container.querySelector(`.${tab.dataset.content}`) as HTMLDivElement;
 
-marked.setOptions({
-  renderer: new marked.Renderer(),
-  highlight: function(code, language, callback) {
-    // console.log(callback && callback.toString());
-    highlightCode_(code, language, callback);
-    return code;
-  },
-  breaks: true,
-  gfm: true,
-  langPrefix: "language-",
-  mangle: true,
-  pedantic: false,
-  sanitize: true,
-  smartLists: true,
-  smartypants: true,
-  tables: true,
-  xhtml: false,
-});
-
-// const markedCallBack = (error: any | undefined, code: string) => {
-//   console.log("markedCallBack");
-//   return code;
-// };
-
-const highlightCode_ = async (
-  code: string,
-  lang: string,
-  callback?: (error: any | undefined, code: string) => void
-) => {
-  // console.log(lang, callback);
-  try {
-    const language = filenameToLang(lang);
-    // console.log(language, lang);
-    const result = await getHighlightedCode(code, language);
-    // if (callback) {
-    callback && callback(null, result.toString());
-    // }
-    // return result;
-    // return result;
-  } catch (err) {
-    callback && callback(err, "");
-  }
-};
-
-const highlightCode = async (code: HTMLElement) => {
-  const lang = Array.from(code.classList)
-    .filter(item => item.startsWith("language-"))
-    .map(className => className.replace("language-", ""))[0];
-  if (lang) {
-    const language = filenameToLang(lang);
-    const html = code.innerHTML.replace(/&gt;/, ">").replace(/&lt;/, "<");
-    // console.log(code.innerHTML);
-    code.innerHTML = await getHighlightedCode(html, language);
-  }
-};
-
-const highlightMarkdown = (markdownContainer: HTMLDivElement) => {
-  const codeSections = markdownContainer.querySelectorAll("code");
-  console.log("codeSections", codeSections);
-  if (codeSections.length === 0) return;
-  Array.from(codeSections).forEach(highlightCode);
-};
-
 interface EditorComponentProps {
   isReply: boolean;
   text: string;
@@ -181,15 +113,14 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
   isReply,
   text,
 }) => {
-  const markDownRef = useRef<HTMLDivElement>(null);
+  const markdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // const [preview, setPreview] = useState(false);
-  const [markedHtml, setMarkedHtml] = useState("");
+  const [preview, setPreview] = useState(false);
 
   const textTrimmed = text.trim();
 
   const onTabClick = useCallback(
-    e => {
+    async e => {
       const target = e.target as HTMLButtonElement;
       const container = containerRef.current!;
       const current = container.querySelector(".selected") as HTMLButtonElement;
@@ -197,26 +128,15 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
       const currentPanel = getPanelForTab(container, current);
       const targetPanel = getPanelForTab(container, target);
 
-      // update preview content
+      // update markdown preview
       const isPreView = target.dataset.content == "preview-content";
       if (isPreView) {
         const height = currentPanel.getBoundingClientRect().height;
         targetPanel.style.minHeight = `${height}px`;
 
-        if (textTrimmed) {
-          const renderer = new marked.Renderer();
-          renderer.link = (href, title, text) =>
-            `<a target="_blank" rel="noopener noreferrer" href="${href}" title="${title}">${text}</a>`;
-          marked(
-            textTrimmed,
-            { renderer },
-            (error: any | undefined, code: string) => {
-              setMarkedHtml(error ? "" : code);
-            }
-          );
-        }
+        await loadLanguagesForMarkdown(textTrimmed);
       }
-      // setPreview(isPreView);
+      setPreview(isPreView);
 
       currentPanel.classList.remove("selected");
       current.classList.remove("selected");
@@ -228,15 +148,6 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
     },
     [text]
   );
-
-  // useEffect(
-  //   () => {
-  //     if (markDownRef.current) {
-  //       highlightMarkdown(markDownRef.current);
-  //     }
-  //   },
-  //   [preview]
-  // );
 
   return (
     <EditorContainer ref={containerRef}>
@@ -275,16 +186,13 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
           as="textarea"
         />
       </div>
-      {/*       <div ref={markDownRef} className="preview-content">
-        {preview && (textTrimmed ? check(textTrimmed) : "Nothing to preview")}
-      </div> */}
-      <article
-        ref={markDownRef}
-        className="preview-content markdown-body"
-        dangerouslySetInnerHTML={{
-          __html: markedHtml || "Nothing to preview",
-        }}
-      />
+      <div ref={markdownRef} className="preview-content markdown-body">
+        {preview && (
+          <MarkdownPreview
+            source={textTrimmed ? textTrimmed : "Nothing to preview"}
+          />
+        )}
+      </div>
     </EditorContainer>
   );
 };

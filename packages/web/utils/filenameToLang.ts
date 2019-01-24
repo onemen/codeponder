@@ -84,3 +84,12 @@ export const filenameToLang = (filename: string) => {
 
   return lfn;
 };
+
+export const nameToLang = (name: string) => {
+  const lang = name.trim().toLowerCase();
+  if (lang) {
+    return extensions[lang] || lang;
+  }
+
+  return lang;
+};

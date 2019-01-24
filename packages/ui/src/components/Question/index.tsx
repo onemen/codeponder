@@ -8,7 +8,7 @@ import { MyButton } from "../MyButton";
 
 interface Props {
   id: string;
-  text: string;
+  markdown?: React.ReactElement<any> | null;
   programmingLanguage?: string | null;
   codeSnippet?: string | null;
   createdAt: string;
@@ -114,7 +114,7 @@ export const CommentCard = (props: CommentCardProps) => {
 
 const BaseCommentCard = ({
   title,
-  text,
+  markdown,
   path,
   numReplies,
   createdAt,
@@ -169,13 +169,10 @@ const BaseCommentCard = ({
       <Text
         className="comment-text"
         my="1rem"
-        // fontFamily="rubik"
-        fontFamily="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol"
         fontSize={2}
-        // color="#78909C"
         color="rgb(36, 41, 46)"
       >
-        {title || text}
+        {title || markdown}
       </Text>
     </>
   );
