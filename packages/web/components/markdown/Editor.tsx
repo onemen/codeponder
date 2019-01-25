@@ -1,4 +1,4 @@
-import { BlueInput, styled } from "@codeponder/ui";
+import { BlueInput, styled, Icon } from "@codeponder/ui";
 import { Field } from "formik";
 import React, { useCallback, useRef, useState } from "react";
 import { CommentInputField } from "../../modules/shared/formik-fields/CommentInputField";
@@ -59,11 +59,16 @@ const NavTab = styled.button`
 `;
 
 const EditorContainer = styled.div`
+  border-radius: inherit;
+
   & .editor-header {
     background-color: #f6f8fa;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
     border-bottom: 1px solid #d1d5da;
     padding: 1rem 0.9rem 0 0.9rem;
     margin-bottom: 1rem;
+    position: relative;
 
     & .editor-header-tabs {
       margin-bottom: -1px;
@@ -98,6 +103,120 @@ const EditorContainer = styled.div`
     border: 1px solid #d1d5da88;
     min-height: 100px;
     padding: 0.8rem;
+  }
+`;
+
+const Toolbar = styled.div`
+  float: right;
+
+  .toolbar-group {
+    display: inline-block;
+    margin-left: 20px;
+
+    & :first-child {
+      margin-left: 0;
+    }
+  }
+
+  & .toolbar-item {
+    background: none;
+    border: 0;
+    color: #586069;
+    display: block;
+    float: left;
+    padding: 4px 5px;
+
+    :hover {
+      color: #0366d6;
+    }
+  }
+
+  & .tooltipped {
+    position: relative;
+    z-index: 10;
+  }
+
+  & .tooltipped::before {
+    border: 6px solid transparent;
+    color: #1b1f23;
+    content: "";
+    display: none;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    width: 0;
+    z-index: 1000001;
+  }
+
+  & .tooltipped::after {
+    background: #1b1f23;
+    border-radius: 3px;
+    color: #fff;
+    content: attr(aria-label);
+    display: none;
+    font: normal normal 11px/1.5 -apple-system, BlinkMacSystemFont, Segoe UI,
+      Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+      Segoe UI Symbol;
+    letter-spacing: normal;
+    opacity: 0;
+    padding: 0.5em 0.75em;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    white-space: pre;
+    word-wrap: break-word;
+    z-index: 1000000;
+  }
+
+  & .tooltipped:active::after,
+  & .tooltipped:active::before,
+  & .tooltipped:focus::after,
+  & .tooltipped:focus::before,
+  & .tooltipped:hover::after,
+  & .tooltipped:hover::before {
+    animation-delay: 0.4s;
+    animation-duration: 0.1s;
+    animation-fill-mode: forwards;
+    animation-name: tooltip-appear;
+    animation-timing-function: ease-in;
+    display: inline-block;
+    text-decoration: none;
+  }
+
+  @keyframes tooltip-appear {
+    0% {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  & .tooltipped-n::before,
+  & .tooltipped-ne::before,
+  & .tooltipped-nw::before {
+    border-top-color: #1b1f23;
+    bottom: auto;
+    margin-right: -6px;
+    right: 50%;
+    top: -7px;
+  }
+
+  & .tooltipped-n::after,
+  & .tooltipped-s::after {
+    transform: translateX(50%);
+  }
+
+  & .tooltipped-n::after,
+  & .tooltipped-ne::after,
+  & .tooltipped-nw::after {
+    bottom: 100%;
+    margin-bottom: 6px;
+    right: 50%;
   }
 `;
 
@@ -152,6 +271,20 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
   return (
     <EditorContainer ref={containerRef}>
       <div className="editor-header">
+        <Toolbar style={{}}>
+          <div className="toolbar-group">
+            <button
+              className="toolbar-item tooltipped tooltipped-n"
+              aria-label="Add header text"
+            >
+              <Icon size={16} name="header_text" fill="currentColor" />
+            </button>
+            <button>AAA</button>
+            <button>AAA</button>
+            <button>AAA</button>
+            <button>AAA</button>
+          </div>
+        </Toolbar>
         <nav className="editor-header-tabs">
           <NavTab
             type="button"

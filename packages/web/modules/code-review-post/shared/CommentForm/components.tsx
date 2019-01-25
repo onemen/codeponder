@@ -54,7 +54,6 @@ export const FormContainer = styled.form`
 export const EditorContainer = styled.div`
   border: 1px solid rgb(209, 213, 218);
   border-radius: 3px;
-  overflow: hidden;
   margin: 1rem 0.9rem;
   padding: 0;
 
