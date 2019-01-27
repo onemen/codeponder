@@ -1,6 +1,6 @@
 import { BlueInput, Icon, IconProps, styled } from "@codeponder/ui";
 import { Field } from "formik";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CommentInputField } from "../../modules/shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "./MarkdownPreview";
 
@@ -242,6 +242,8 @@ type ActionMap = {
   };
 };
 
+let isIE8 = false;
+
 export const EditorComponent: React.FC<EditorComponentProps> = ({
   isReply,
   text,
@@ -292,7 +294,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
     insert_code: { before: "`", after: "`" },
     insert_link: { before: "[", after: "](url)" },
     bulleted_list: { before: "- ", newLine: "\n", multiple: true },
-    numbered_list: { before: "", multiple: true },
+    numbered_list: { before: "%. ", newLine: "\n", multiple: true },
     task_list: { before: "", multiple: true },
     mention_user: { before: "" },
     reference: { before: "" },
@@ -303,30 +305,43 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
     selectionStart: number,
     selectionEnd: number
   ) => {
-    const txtarea = writeRef.current!;
-    txtarea.value = text;
-    txtarea.selectionStart = selectionStart;
-    txtarea.selectionEnd = selectionEnd;
-    txtarea.focus();
-    txtarea.style.height = txtarea.scrollHeight + 2 + "px";
+    const textarea = writeRef.current!;
+    textarea.value = text;
+    textarea.selectionStart = selectionStart;
+    textarea.selectionEnd = selectionEnd;
+    textarea.focus();
+    textarea.style.height = textarea.scrollHeight + 2 + "px";
   };
 
+  useLayoutEffect(() => {
+    const textarea = writeRef.current!;
+    // textarea selectionStart and selectionEnd does not exist on IE8
+    isIE8 =
+      typeof textarea.selectionStart !== "number" ||
+      typeof textarea.selectionEnd !== "number";
+  }, []);
+
   const onClick = useCallback((e: any) => {
-    const txtarea = writeRef.current!;
-    const text = txtarea.value;
+    const textarea = writeRef.current!;
+    const text = textarea.value;
     const action: string = e.target.dataset.click;
     let { before, after = "", newLine = "", multiple = false } = actionMap[
       action
     ];
 
-    const start = txtarea.selectionStart || 0;
-    const end = txtarea.selectionEnd || 0;
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
     const length = text.length;
 
     if (start == length) {
-      const before_ = start == 0 ? before : newLine + newLine + before;
-      const newText = text + before_ + after;
-      updateTextValue(newText, start + before_.length, end + before_.length);
+      // const before_ = start == 0 ? before : newLine + newLine + before;
+      // const newText = text + before_ + after;
+      // updateTextValue(newText, start + before_.length, end + before_.length);
+      // return;
+      const newLineBefore = start == 0 ? "" : newLine + newLine;
+      const offset = (newLineBefore + before).length;
+      const newText = text + newLineBefore + before + after;
+      updateTextValue(newText, start + offset, end + offset);
       return;
     }
 
@@ -367,27 +382,49 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
       after = "\n```";
     }
 
-    const before_ =
-      (startIndex == 0
+    // const before_ =
+    //   (startIndex == 0
+    //     ? ""
+    //     : newLine + (first[first.length - 1] == newLine ? "" : newLine)) +
+    //   before;
+
+    // const after_ =
+    //   after +
+    //   (endIndex == length ? "" : newLine + (last[0] == newLine ? "" : newLine));
+
+    const newLineBefore =
+      startIndex == 0
         ? ""
-        : newLine + (first[first.length - 1] == newLine ? "" : newLine)) +
-      before;
+        : newLine + (first[first.length - 1] == newLine ? "" : newLine);
 
-    const after_ =
-      after +
-      (endIndex == length ? "" : newLine + (last[0] == newLine ? "" : newLine));
+    const newLineAfter =
+      endIndex == length ? "" : newLine + (last[0] == newLine ? "" : newLine);
 
-    const left =
-      first + before_ + (multiple ? rows.join("\n" + before) : selection);
-    const newText = left + after_ + last;
+    const offset = (newLineBefore + before).length;
+
+    const middle = multiple
+      ? rows
+          .map((row, index) => before.replace(/%/, `${index}`) + row)
+          .join("\n")
+      : before + selection;
+
+    // const startText =
+    //   first +
+    //   newLineBefore +
+    //   before +
+    //   (multiple ? rows.join("\n" + before) : selection);
+    const startText = first + newLineBefore + middle;
+    const newText = startText + after + newLineAfter + last;
 
     if (action == "insert_link") {
-      updateTextValue(newText, left.length + 2, left.length + 5);
+      updateTextValue(newText, startText.length + 2, startText.length + 5);
     } else {
       updateTextValue(
         newText,
-        start + (multiple && rows.length > 1 ? 0 : before_.length),
-        end + before_.length * (multiple ? rows.length : 1)
+        // start + (multiple && rows.length > 1 ? 0 : before_.length),
+        // end + before_.length * (multiple ? rows.length : 1)
+        start + (multiple && rows.length > 1 ? 0 : offset),
+        end + offset * (multiple ? rows.length : 1)
       );
     }
   }, []);
@@ -403,77 +440,79 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
   return (
     <EditorContainer ref={containerRef}>
       <div className="editor-header">
-        <Toolbar>
-          <div className="toolbar-group">
-            <EditorButton
-              onClick={onClick}
-              label="Add header text"
-              data-click="header_text"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Add bold text"
-              data-click="bold_text"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Add italic text"
-              data-click="italic_text"
-            />
-          </div>
-          <div className="toolbar-group">
-            <EditorButton
-              onClick={onClick}
-              label="Insert a quote"
-              data-click="insert_quote"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Insert code"
-              data-click="insert_code"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Add a link <ctrl+k>"
-              data-click="insert_link"
-            />
-          </div>
-          <div className="toolbar-group">
-            <EditorButton
-              onClick={onClick}
-              label="Add a bulleted list"
-              data-click="bulleted_list"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Add a numbered list"
-              data-click="numbered_list"
-            />
-            <EditorButton
-              onClick={onClick}
-              label="Add a task list"
-              data-click="task_list"
-            />
-          </div>
-          <div className="toolbar-group">
-            <EditorButton
-              onClick={onClick}
-              className="tooltipped-nw"
-              label="Directly mention a user or team"
-              data-click="mention_user"
-            />
-            <EditorButton
-              onClick={onClick}
-              className="tooltipped-nw"
-              label="Reference an issue or pull request"
-              data-click="reference"
-            />
-            {/*
+        {!preview && !isIE8 && (
+          <Toolbar>
+            <div className="toolbar-group">
+              <EditorButton
+                onClick={onClick}
+                label="Add header text"
+                data-click="header_text"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Add bold text"
+                data-click="bold_text"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Add italic text"
+                data-click="italic_text"
+              />
+            </div>
+            <div className="toolbar-group">
+              <EditorButton
+                onClick={onClick}
+                label="Insert a quote"
+                data-click="insert_quote"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Insert code"
+                data-click="insert_code"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Add a link <ctrl+k>"
+                data-click="insert_link"
+              />
+            </div>
+            <div className="toolbar-group">
+              <EditorButton
+                onClick={onClick}
+                label="Add a bulleted list"
+                data-click="bulleted_list"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Add a numbered list"
+                data-click="numbered_list"
+              />
+              <EditorButton
+                onClick={onClick}
+                label="Add a task list"
+                data-click="task_list"
+              />
+            </div>
+            <div className="toolbar-group">
+              <EditorButton
+                onClick={onClick}
+                className="tooltipped-nw"
+                label="Directly mention a user or team"
+                data-click="mention_user"
+              />
+              <EditorButton
+                onClick={onClick}
+                className="tooltipped-nw"
+                label="Reference an issue or pull request"
+                data-click="reference"
+              />
+              {/*
               <EditorButton label="Insert a reply" data-click="insert_reply" />
               <EditorButton label="Select a reply" data-click="select_reply" />
             */}
-          </div>
-        </Toolbar>
+            </div>
+          </Toolbar>
+        )}
         <nav className="editor-header-tabs">
           <NavTab
             type="button"
