@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --project tsconfig.server.json server/index.ts",
+    "dev": "nodemon server/index.ts",
     "build": "next build",
     "start": "next start",
     "type-check": "tsc",
@@ -55,7 +55,6 @@
     "next-plugin-transpile-modules": "1.0.0",
     "nodemon": "1.18.9",
     "ts-node": "8.0.2",
-    "ts-node-dev": "^1.0.0-pre.32",
     "tslint": "5.12.1",
     "typescript": "3.2.4",
     "url-loader": "1.1.2"
