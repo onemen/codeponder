@@ -1,6 +1,12 @@
 import { BlueInput, Icon, IconProps, styled } from "@codeponder/ui";
 import { Field } from "formik";
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { CommentInputField } from "../../modules/shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "./MarkdownPreview";
 
@@ -257,7 +263,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
 
   const onTabClick = useCallback(
     async e => {
-      const target = e.target as HTMLButtonElement;
+      const target = e.currentTarget as HTMLButtonElement;
       const container = containerRef.current!;
       const current = container.querySelector(".selected") as HTMLButtonElement;
       if (!current) return;
@@ -295,7 +301,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
     insert_link: { before: "[", after: "](url)" },
     bulleted_list: { before: "- ", newLine: "\n", multiple: true },
     numbered_list: { before: "%. ", newLine: "\n", multiple: true },
-    task_list: { before: "", multiple: true },
+    task_list: { before: "- [ ] ", newLine: "\n", multiple: true },
     mention_user: { before: "" },
     reference: { before: "" },
   };
@@ -324,7 +330,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
   const onClick = useCallback((e: any) => {
     const textarea = writeRef.current!;
     const text = textarea.value;
-    const action: string = e.target.dataset.click;
+    const action: string = e.currentTarget.dataset.click;
     let { before, after = "", newLine = "", multiple = false } = actionMap[
       action
     ];
@@ -340,7 +346,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
       // return;
       const newLineBefore = start == 0 ? "" : newLine + newLine;
       const offset = (newLineBefore + before).length;
-      const newText = text + newLineBefore + before + after;
+      const newText = text + newLineBefore + before.replace(/%/, "1") + after;
       updateTextValue(newText, start + offset, end + offset);
       return;
     }
@@ -404,7 +410,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
 
     const middle = multiple
       ? rows
-          .map((row, index) => before.replace(/%/, `${index}`) + row)
+          .map((row, index) => before.replace(/%/, `${index + 1}`) + row)
           .join("\n")
       : before + selection;
 
@@ -493,6 +499,7 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
                 data-click="task_list"
               />
             </div>
+            {/*
             <div className="toolbar-group">
               <EditorButton
                 onClick={onClick}
@@ -506,11 +513,11 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({
                 label="Reference an issue or pull request"
                 data-click="reference"
               />
-              {/*
+
               <EditorButton label="Insert a reply" data-click="insert_reply" />
               <EditorButton label="Select a reply" data-click="select_reply" />
-            */}
             </div>
+            */}
           </Toolbar>
         )}
         <nav className="editor-header-tabs">
