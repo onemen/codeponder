@@ -101,7 +101,7 @@ export const CommentForm = ({
         }
       }}
     >
-      {({ isValid, handleSubmit, values }) => {
+      {({ isValid, handleSubmit, values, handleChange }) => {
         return (
           <FormContainer
             onSubmit={handleSubmit}
@@ -122,7 +122,11 @@ export const CommentForm = ({
               </FormRow>
             )}
             <EditorContainer>
-              <EditorComponent isReply={isReply} text={values.text} />
+              <EditorComponent
+                isReply={isReply}
+                text={values.text}
+                textChange={handleChange}
+              />
               <div className="editor-footer">
                 <a
                   href="https://guides.github.com/features/mastering-markdown"
