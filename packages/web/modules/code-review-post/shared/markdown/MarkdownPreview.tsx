@@ -4,12 +4,12 @@ import ReactMarkdown, { ReactMarkdownProps } from "react-markdown";
 import {
   getHighlightedCodeSync,
   loadLanguageList,
-} from "../../utils/highlightCode";
+} from "../../../../utils/highlightCode";
 import "./github-markdown.css";
 
 // load language for each section in the text that starts with: ```LANG
 export const loadLanguagesForMarkdown = (text: string) => {
-  if (!text) return Promise.resolve();
+  if (!text) return Promise.resolve([]);
   const re = /\`\`\`(\w+)\n/g;
   const codeBlocksLanguage = new Set(text.match(re));
   const list = [...codeBlocksLanguage.keys()].map(lang =>

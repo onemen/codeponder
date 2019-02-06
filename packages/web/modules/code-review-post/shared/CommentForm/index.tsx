@@ -2,9 +2,9 @@ import { Icon, MyButton } from "@codeponder/ui";
 import { Field, Formik } from "formik";
 import React, { useCallback, useEffect, useRef } from "react";
 import * as yup from "yup";
-import { EditorComponent } from "../../../../components/markdown/Editor";
 import { scrollToView } from "../../../../utils/domScrollUtils";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
+import { EditorComponent } from "../markdown/Editor";
 import { EditorContainer, FormContainer, FormRow } from "./components";
 
 export interface TextEditorProps {

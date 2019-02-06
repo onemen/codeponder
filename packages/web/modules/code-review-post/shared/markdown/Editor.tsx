@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { CommentInputField } from "../../modules/shared/formik-fields/CommentInputField";
+import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "./MarkdownPreview";
 import { Toolbar, ToolbarContext } from "./Toolbar";
 
