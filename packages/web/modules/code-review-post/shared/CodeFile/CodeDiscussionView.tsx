@@ -1,5 +1,5 @@
 import { CommentCard, styled } from "@codeponder/ui";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { CodeReviewQuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestionReply } from "../CreateQuestionReply";
 import {
@@ -73,9 +73,27 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
   showDiscussion,
   lineNum,
 }) => {
+  const discussionRef = useRef<HTMLDivElement>(null);
   const { owner } = useContext(PostContext);
   const [showReply, setShowReply] = useState(false);
   const loadingLanguage = useLoadingLanguage(question);
+
+  useEffect(() => {
+    if (showDiscussion) {
+      discussionRef.current!.classList.add("is-open");
+    }
+  }, [showDiscussion, showReply]);
+
+  useEffect(() => {
+    // we only need maxHeight for the animation, we remove it after the
+    // animation ends for the case the height is grater than 2000px
+    if (showDiscussion) {
+      const id = setTimeout(() => {
+        discussionRef.current!.style.maxHeight = "none";
+      }, 200);
+      return () => clearTimeout(id);
+    }
+  }, [showDiscussion]);
 
   return (
     <>
@@ -84,7 +102,15 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
         title={showDiscussion ? COLLAPSE : EXPANDED}
         onClick={() => {
           setShowReply(false);
-          toggleDiscussion();
+          if (showDiscussion) {
+            discussionRef.current!.style.maxHeight = "";
+            discussionRef.current!.classList.remove("is-open");
+            setTimeout(() => {
+              toggleDiscussion();
+            }, 200);
+          } else {
+            toggleDiscussion();
+          }
         }}
       >
         <span className="badge-counter">{question.numReplies}</span>
@@ -92,7 +118,8 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
       </button>
       {showDiscussion && (
         <DiscussionContainer
-          className="inner-animate-box is-open"
+          ref={discussionRef}
+          className="inner-animate-box"
           showReply={showReply}
         >
           <DiscussionNavBar>
