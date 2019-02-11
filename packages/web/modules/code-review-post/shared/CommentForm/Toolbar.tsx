@@ -1,5 +1,5 @@
 import { styled } from "@codeponder/ui";
-import React, { createContext } from "react";
+import React from "react";
 import { CommandButton } from "./CommandButton";
 
 const ToolbarContainer = styled.div`
@@ -121,31 +121,28 @@ const ToolbarContainer = styled.div`
   }
 `;
 
-export const Toolbar: React.FC = () => {
+type ToolbarProps = {
+  onCommand: (name: string) => void;
+};
+
+export const Toolbar: React.FC<ToolbarProps> = ({ onCommand }) => {
   return (
     <ToolbarContainer>
       <div className="toolbar-group">
-        <CommandButton name="header_text" />
-        <CommandButton name="bold_text" />
-        <CommandButton name="italic_text" />
+        <CommandButton onCommand={onCommand} name="header_text" />
+        <CommandButton onCommand={onCommand} name="bold_text" />
+        <CommandButton onCommand={onCommand} name="italic_text" />
       </div>
       <div className="toolbar-group">
-        <CommandButton name="insert_quote" />
-        <CommandButton name="insert_code" />
-        <CommandButton name="insert_link" />
+        <CommandButton onCommand={onCommand} name="insert_quote" />
+        <CommandButton onCommand={onCommand} name="insert_code" />
+        <CommandButton onCommand={onCommand} name="insert_link" />
       </div>
       <div className="toolbar-group">
-        <CommandButton name="bulleted_list" />
-        <CommandButton name="numbered_list" />
-        <CommandButton name="task_list" />
+        <CommandButton onCommand={onCommand} name="bulleted_list" />
+        <CommandButton onCommand={onCommand} name="numbered_list" />
+        <CommandButton onCommand={onCommand} name="task_list" />
       </div>
     </ToolbarContainer>
   );
 };
-
-type ToolbarProps = {
-  writeRef: React.RefObject<HTMLInputElement>;
-  textChange: (e: any) => void;
-};
-
-export const ToolbarContext = createContext<ToolbarProps>({} as any);

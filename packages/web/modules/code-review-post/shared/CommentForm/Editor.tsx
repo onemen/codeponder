@@ -9,7 +9,8 @@ import React, {
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
-import { Toolbar, ToolbarContext } from "./Toolbar";
+import { executeCommand } from "./commands";
+import { Toolbar } from "./Toolbar";
 
 const NavTab = styled.button`
   appearance: none;
@@ -66,6 +67,7 @@ const EditorContainer = styled.div`
   & .preview-content {
     border-bottom: 1px solid #d1d5da88;
     padding: 0.8rem;
+    line-height: 1;
 
     /* move this part to a separate style */
     & ol,
@@ -94,108 +96,121 @@ interface EditorProps {
 
 let isIE8 = false;
 
-export const Editor: React.FC<EditorProps> = ({
-  isReply,
-  text,
-  textChange,
-}) => {
-  const writeRef = useRef<HTMLInputElement>(null);
-  const markdownRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [preview, setPreview] = useState(false);
+export const Editor: React.FC<EditorProps> = React.memo(
+  ({ isReply, text, textChange }) => {
+    const writeRef = useRef<HTMLInputElement>(null);
+    const markdownRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [preview, setPreview] = useState(false);
 
-  const textTrimmed = text.trim();
+    const textTrimmed = text.trim();
 
-  const onTabClick = useCallback(
-    async e => {
-      const target = e.currentTarget as HTMLButtonElement;
-      const container = containerRef.current!;
-      const current = container.querySelector(".selected") as HTMLButtonElement;
-      if (!current) return;
-      const currentPanel = getPanelForTab(container, current);
-      const targetPanel = getPanelForTab(container, target);
+    const handleTabChange = useCallback(
+      async e => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const container = containerRef.current!;
+        const current = container.querySelector(
+          ".selected"
+        ) as HTMLButtonElement;
+        if (!current) return;
+        const currentPanel = getPanelForTab(container, current);
+        const targetPanel = getPanelForTab(container, target);
 
-      // update markdown preview
-      const isPreView = target.dataset.content == "preview-content";
-      if (isPreView) {
-        const height = currentPanel.getBoundingClientRect().height;
-        targetPanel.style.minHeight = `${height}px`;
+        // update markdown preview
+        const isPreView = target.dataset.content == "preview-content";
+        if (isPreView) {
+          const height = currentPanel.getBoundingClientRect().height;
+          targetPanel.style.minHeight = `${height}px`;
 
-        await loadLanguagesForMarkdown(textTrimmed);
-      }
-      setPreview(isPreView);
+          await loadLanguagesForMarkdown(textTrimmed);
+        }
+        setPreview(isPreView);
 
-      currentPanel.classList.remove("selected");
-      current.classList.remove("selected");
-      current.removeAttribute("aria-selected");
+        currentPanel.classList.remove("selected");
+        current.classList.remove("selected");
+        current.removeAttribute("aria-selected");
 
-      targetPanel.classList.add("selected");
-      target.classList.add("selected");
-      target.setAttribute("aria-selected", "true");
-    },
-    [text]
-  );
+        targetPanel.classList.add("selected");
+        target.classList.add("selected");
+        target.setAttribute("aria-selected", "true");
+      },
+      [text]
+    );
 
-  useLayoutEffect(() => {
-    const textarea = writeRef.current!;
-    // textarea selectionStart and selectionEnd does not exist on IE8
-    isIE8 =
-      typeof textarea.selectionStart !== "number" ||
-      typeof textarea.selectionEnd !== "number";
-  }, []);
+    const handleCommand = useCallback((name: string) => {
+      const textarea = writeRef.current!;
+      const { value: text, selectionStart, selectionEnd } = textarea;
+      const { newText, start, end } = executeCommand(
+        name,
+        text,
+        selectionStart,
+        selectionEnd
+      );
 
-  // dynamically set textarea height
-  useEffect(() => {
-    const textarea = writeRef.current!;
-    textarea.style.height = "100px";
-    textarea.style.height = writeRef.current!.scrollHeight + 2 + "px";
-  }, [text]);
+      textChange({ target: { name: "text", value: newText } });
+      textarea.selectionStart = start;
+      textarea.selectionEnd = end;
+      textarea.focus();
+      textarea.style.height = textarea.scrollHeight + 2 + "px";
+    }, []);
 
-  return (
-    <EditorContainer ref={containerRef}>
-      <div className="editor-header">
-        {!preview && !isIE8 && (
-          <ToolbarContext.Provider value={{ writeRef, textChange }}>
-            <Toolbar />
-          </ToolbarContext.Provider>
-        )}
-        <nav className="editor-header-tabs">
-          <NavTab
-            type="button"
-            className="selected"
-            data-content="write-content"
-            aria-selected="true"
-            onClick={onTabClick}
-          >
-            Write
-          </NavTab>
-          <NavTab
-            type="button"
-            data-content="preview-content"
-            onClick={onTabClick}
-          >
-            Preview
-          </NavTab>
-        </nav>
-      </div>
-      <div className="write-content selected">
-        <Field
-          inputRef={writeRef}
-          component={CommentInputField}
-          autoFocus={isReply}
-          minHeight="100px"
-          name="text"
-          placeholder={isReply ? "Type your Reply" : "Type your Question"}
-          as="textarea"
-        />
-      </div>
-      <div ref={markdownRef} className="preview-content markdown-body">
-        {preview && (
-          <MarkdownPreview
-            source={textTrimmed ? textTrimmed : "Nothing to preview"}
+    useLayoutEffect(() => {
+      const textarea = writeRef.current!;
+      // textarea selectionStart and selectionEnd does not exist on IE8
+      isIE8 =
+        typeof textarea.selectionStart !== "number" ||
+        typeof textarea.selectionEnd !== "number";
+    }, []);
+
+    // dynamically set textarea height
+    useEffect(() => {
+      const textarea = writeRef.current!;
+      textarea.style.height = "100px";
+      textarea.style.height = writeRef.current!.scrollHeight + 2 + "px";
+    }, [text]);
+
+    return (
+      <EditorContainer ref={containerRef}>
+        <div className="editor-header">
+          {!preview && !isIE8 && <Toolbar onCommand={handleCommand} />}
+          <nav className="editor-header-tabs">
+            <NavTab
+              type="button"
+              className="selected"
+              data-content="write-content"
+              aria-selected="true"
+              onClick={handleTabChange}
+            >
+              Write
+            </NavTab>
+            <NavTab
+              type="button"
+              data-content="preview-content"
+              onClick={handleTabChange}
+            >
+              Preview
+            </NavTab>
+          </nav>
+        </div>
+        <div className="write-content selected">
+          <Field
+            inputRef={writeRef}
+            component={CommentInputField}
+            autoFocus={isReply}
+            minHeight="100px"
+            name="text"
+            placeholder={isReply ? "Type your Reply" : "Type your Question"}
+            as="textarea"
           />
-        )}
-      </div>
-    </EditorContainer>
-  );
-};
+        </div>
+        <div ref={markdownRef} className="preview-content markdown-body">
+          {preview && (
+            <MarkdownPreview
+              source={textTrimmed ? textTrimmed : "Nothing to preview"}
+            />
+          )}
+        </div>
+      </EditorContainer>
+    );
+  }
+);
