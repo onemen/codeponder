@@ -1,5 +1,6 @@
-import { Icon, IconProps, styled } from "@codeponder/ui";
-import React, { createContext, useContext } from "react";
+import { styled } from "@codeponder/ui";
+import React, { createContext } from "react";
+import { CommandButton } from "./CommandButton";
 
 const ToolbarContainer = styled.div`
   float: right;
@@ -120,180 +121,23 @@ const ToolbarContainer = styled.div`
   }
 `;
 
-type ActionMap = {
-  [key: string]: {
-    label: string;
-    className?: string;
-    before: string;
-    after?: string;
-    newLine?: string;
-    multiple?: true;
-  };
-};
-
-const onButtonClick = (
-  textarea: HTMLInputElement,
-  textChange: (e: any) => void,
-  name: string
-) => {
-  const updateTextValue = (
-    text: string,
-    selectionStart: number,
-    selectionEnd: number
-  ) => {
-    textChange({ target: { name: "text", value: text } });
-    textarea.selectionStart = selectionStart;
-    textarea.selectionEnd = selectionEnd;
-    textarea.focus();
-    textarea.style.height = textarea.scrollHeight + 2 + "px";
-  };
-
-  const text = textarea.value;
-  let { before, after = "", newLine = "", multiple = false } = actionMap[name];
-
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const length = text.length;
-
-  if (start == length) {
-    const newLineBefore = start == 0 ? "" : newLine + newLine;
-    const offset = (newLineBefore + before).length;
-    const newText = text + newLineBefore + before.replace(/%/, "1") + after;
-    updateTextValue(newText, start + offset, end + offset);
-    return;
-  }
-
-  let startIndex, endIndex;
-  if (start === end) {
-    const textStart = text.substring(0, start);
-    const lineStart = textStart.lastIndexOf("\n") + 1;
-    const sectionStart = textStart.lastIndexOf(" ") + 1;
-    startIndex = Math.max(lineStart, sectionStart);
-    const textEnd = text.substring(end) + "\n ";
-    const lineEnd = textEnd.indexOf("\n");
-    const sectionEnd = textEnd.indexOf(" ");
-    endIndex = end + Math.min(lineEnd, sectionEnd);
-  } else {
-    startIndex = start;
-    endIndex = end;
-  }
-
-  const first = text.substring(0, startIndex);
-  const selection = text.substring(startIndex, endIndex);
-  const rows = selection.split("\n");
-  const last = text.substring(endIndex);
-
-  if (name == "insert_code" && rows.length > 1) {
-    before = "```\n";
-    after = "\n```";
-  }
-
-  const newLineBefore =
-    startIndex == 0
-      ? ""
-      : newLine + (first[first.length - 1] == newLine ? "" : newLine);
-
-  const newLineAfter =
-    endIndex == length ? "" : newLine + (last[0] == newLine ? "" : newLine);
-
-  const offset = (newLineBefore + before).length;
-
-  const middle = multiple
-    ? rows
-        .map((row, index) => before.replace(/%/, `${index + 1}`) + row)
-        .join("\n")
-    : before + selection;
-
-  const startText = first + newLineBefore + middle;
-  const newText = startText + after + newLineAfter + last;
-
-  if (name == "insert_link") {
-    updateTextValue(newText, startText.length + 2, startText.length + 5);
-  } else {
-    updateTextValue(
-      newText,
-      start + (multiple && rows.length > 1 ? 0 : offset),
-      end + offset * (multiple ? rows.length : 1)
-    );
-  }
-};
-
-// TODO: add shortcut key like in github
-const actionMap: ActionMap = {
-  header_text: { label: "Add header text", before: "### " },
-  bold_text: { label: "Add bold text", before: "**", after: "**" },
-  italic_text: { label: "Add italic text", before: "_", after: "_" },
-  insert_quote: {
-    label: "Insert a quote",
-    before: "> ",
-    newLine: "\n",
-    multiple: true,
-  },
-  insert_code: { label: "Insert code", before: "`", after: "`" },
-  insert_link: { label: "Add a link <ctrl+k>", before: "[", after: "](url)" },
-  bulleted_list: {
-    label: "Add a bulleted list",
-    before: "- ",
-    newLine: "\n",
-    multiple: true,
-  },
-  numbered_list: {
-    label: "Add a numbered list",
-    before: "%. ",
-    newLine: "\n",
-    multiple: true,
-  },
-  task_list: {
-    label: "Add a task list",
-    before: "- [ ] ",
-    newLine: "\n",
-    multiple: true,
-  },
-  mention_user: {
-    label: "Directly mention a user or team",
-    className: "tooltipped-nw",
-    before: "",
-  },
-  reference: {
-    label: "Reference an issue or pull request",
-    className: "tooltipped-nw",
-    before: "",
-  },
-};
-
-const EditorButton: React.FC<{ name: IconProps["name"] }> = ({ name }) => {
-  const { writeRef, textChange } = useContext(ToolbarContext);
-  const { label, className = "tooltipped-n" } = actionMap[name];
-  const baseClass = "toolbar-item tooltipped";
-
-  return (
-    <button
-      className={className ? `${className} ${baseClass}` : baseClass}
-      aria-label={label}
-      onClick={() => onButtonClick(writeRef.current!, textChange, name)}
-    >
-      <Icon size={16} name={name} fill="currentColor" />
-    </button>
-  );
-};
-
 export const Toolbar: React.FC = () => {
   return (
     <ToolbarContainer>
       <div className="toolbar-group">
-        <EditorButton name="header_text" />
-        <EditorButton name="bold_text" />
-        <EditorButton name="italic_text" />
+        <CommandButton name="header_text" />
+        <CommandButton name="bold_text" />
+        <CommandButton name="italic_text" />
       </div>
       <div className="toolbar-group">
-        <EditorButton name="insert_quote" />
-        <EditorButton name="insert_code" />
-        <EditorButton name="insert_link" />
+        <CommandButton name="insert_quote" />
+        <CommandButton name="insert_code" />
+        <CommandButton name="insert_link" />
       </div>
       <div className="toolbar-group">
-        <EditorButton name="bulleted_list" />
-        <EditorButton name="numbered_list" />
-        <EditorButton name="task_list" />
+        <CommandButton name="bulleted_list" />
+        <CommandButton name="numbered_list" />
+        <CommandButton name="task_list" />
       </div>
     </ToolbarContainer>
   );
