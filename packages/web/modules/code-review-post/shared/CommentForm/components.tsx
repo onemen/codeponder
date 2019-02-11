@@ -4,12 +4,6 @@ export const FormRow = styled.div`
   padding: 1rem 0.9rem;
 `;
 
-export const Separator = styled.div`
-  width: 100%
-  height: 1;
-  background: #f2f2f2;
-`;
-
 export const FormContainer = styled.form`
   background-color: #ffffff;
   border-top: ${(p: { isReply: boolean; view: string }) =>

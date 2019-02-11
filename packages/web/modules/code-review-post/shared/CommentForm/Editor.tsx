@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
-import { loadLanguagesForMarkdown, MarkdownPreview } from "./MarkdownPreview";
+import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
 import { Toolbar, ToolbarContext } from "./Toolbar";
 
 const NavTab = styled.button`
@@ -86,7 +86,7 @@ const EditorContainer = styled.div`
 const getPanelForTab = (container: HTMLDivElement, tab: HTMLButtonElement) =>
   container.querySelector(`.${tab.dataset.content}`) as HTMLDivElement;
 
-interface EditorComponentProps {
+interface EditorProps {
   isReply: boolean;
   text: string;
   textChange: (e: any) => void;
@@ -94,7 +94,7 @@ interface EditorComponentProps {
 
 let isIE8 = false;
 
-export const EditorComponent: React.FC<EditorComponentProps> = ({
+export const Editor: React.FC<EditorProps> = ({
   isReply,
   text,
   textChange,

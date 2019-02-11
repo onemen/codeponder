@@ -2,10 +2,7 @@ import { CommentCard, styled } from "@codeponder/ui";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { CodeReviewQuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestionReply } from "../CreateQuestionReply";
-import {
-  loadLanguagesForMarkdown,
-  MarkdownPreview,
-} from "../markdown/MarkdownPreview";
+import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
 import { PostContext } from "../PostContext";
 
 interface CodeDiscussionViewProps {
