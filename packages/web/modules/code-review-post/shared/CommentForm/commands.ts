@@ -9,11 +9,10 @@ type CommandsMap = {
   };
 };
 
-// TODO: add shortcut key like in github
 export const commands: CommandsMap = {
   header_text: { label: "Add header text", before: "### " },
-  bold_text: { label: "Add bold text", before: "**", after: "**" },
-  italic_text: { label: "Add italic text", before: "_", after: "_" },
+  bold_text: { label: "Add bold text <ctrl+b>", before: "**", after: "**" },
+  italic_text: { label: "Add italic text <ctrl+i>", before: "_", after: "_" },
   insert_quote: {
     label: "Insert a quote",
     before: "> ",
@@ -124,4 +123,19 @@ export const executeCommand = (
     start: start + (multiple && rows.length > 1 ? 0 : offset),
     end: end + offset * (multiple ? rows.length : 1),
   };
+};
+
+export const keyCommands = (e: React.KeyboardEvent) => {
+  const control = !e.altKey && (e.ctrlKey || e.metaKey);
+  if (control) {
+    switch (e.keyCode) {
+      case 66: // 'b' Add bold text
+        return "bold_text";
+      case 73: // 'i' Add italic text
+        return "italic_text";
+      case 75: // 'k' Add a link
+        return "insert_link";
+    }
+  }
+  return "";
 };

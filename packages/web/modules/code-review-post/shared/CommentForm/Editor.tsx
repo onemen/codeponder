@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
-import { executeCommand } from "./commands";
+import { executeCommand, keyCommands } from "./commands";
 import { Toolbar } from "./Toolbar";
 
 const NavTab = styled.button`
@@ -98,7 +98,7 @@ let isIE8 = false;
 
 export const Editor: React.FC<EditorProps> = React.memo(
   ({ isReply, text, textChange }) => {
-    const writeRef = useRef<HTMLInputElement>(null);
+    const writeRef = useRef<HTMLTextAreaElement>(null);
     const markdownRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [preview, setPreview] = useState(false);
@@ -154,6 +154,14 @@ export const Editor: React.FC<EditorProps> = React.memo(
       textarea.style.height = textarea.scrollHeight + 2 + "px";
     }, []);
 
+    const handleKeyCommand = useCallback((e: React.KeyboardEvent) => {
+      const command = keyCommands(e);
+      if (command) {
+        handleCommand(command);
+        e.preventDefault();
+      }
+    }, []);
+
     useLayoutEffect(() => {
       const textarea = writeRef.current!;
       // textarea selectionStart and selectionEnd does not exist on IE8
@@ -200,6 +208,7 @@ export const Editor: React.FC<EditorProps> = React.memo(
             minHeight="100px"
             name="text"
             placeholder={isReply ? "Type your Reply" : "Type your Question"}
+            onKeyDown={handleKeyCommand}
             as="textarea"
           />
         </div>
