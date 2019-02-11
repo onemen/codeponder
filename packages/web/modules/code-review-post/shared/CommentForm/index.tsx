@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { scrollToView } from "../../../../utils/domScrollUtils";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { EditorComponent } from "../markdown/Editor";
-import { EditorContainer, FormContainer, FormRow } from "./components";
+import { FormContainer, FormRow } from "./components";
 
 export interface TextEditorProps {
   isReply: boolean;
@@ -121,7 +121,7 @@ export const CommentForm = ({
                 />
               </FormRow>
             )}
-            <EditorContainer>
+            <div className="editor-outer-box">
               <EditorComponent
                 isReply={isReply}
                 text={values.text}
@@ -156,7 +156,7 @@ export const CommentForm = ({
                   </MyButton>
                 </div>
               </div>
-            </EditorContainer>
+            </div>
           </FormContainer>
         );
       }}

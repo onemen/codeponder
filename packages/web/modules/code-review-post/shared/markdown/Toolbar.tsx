@@ -131,14 +131,6 @@ type ActionMap = {
   };
 };
 
-// interface EditorButtonProps
-//   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-//   label: string;
-//   "data-click": IconProps["name"];
-// }
-
-// const onButtonClick = useCallback((e: any) => {
-// const onButtonClick = useCallback(
 const onButtonClick = (
   textarea: HTMLInputElement,
   textChange: (e: any) => void,
@@ -149,7 +141,6 @@ const onButtonClick = (
     selectionStart: number,
     selectionEnd: number
   ) => {
-    // const textarea = writeRef.current!;
     textChange({ target: { name: "text", value: text } });
     textarea.selectionStart = selectionStart;
     textarea.selectionEnd = selectionEnd;
@@ -157,9 +148,7 @@ const onButtonClick = (
     textarea.style.height = textarea.scrollHeight + 2 + "px";
   };
 
-  // const textarea = writeRef.current!;
   const text = textarea.value;
-  // const action: string = e.currentTarget.dataset.click;
   let { before, after = "", newLine = "", multiple = false } = actionMap[name];
 
   const start = textarea.selectionStart || 0;
@@ -228,9 +217,7 @@ const onButtonClick = (
     );
   }
 };
-//   },
-//   []
-// );
+
 // TODO: add shortcut key like in github
 const actionMap: ActionMap = {
   header_text: { label: "Add header text", before: "### " },
@@ -274,12 +261,6 @@ const actionMap: ActionMap = {
   },
 };
 
-// const EditorButton: React.FC<EditorButtonProps> = ({
-//   label,
-//   "data-click": dataClick,
-//   className = "tooltipped-n",
-//   // onClick,
-// }) => {
 const EditorButton: React.FC<{ name: IconProps["name"] }> = ({ name }) => {
   const { writeRef, textChange } = useContext(ToolbarContext);
   const { label, className = "tooltipped-n" } = actionMap[name];
@@ -289,18 +270,8 @@ const EditorButton: React.FC<{ name: IconProps["name"] }> = ({ name }) => {
     <button
       className={className ? `${className} ${baseClass}` : baseClass}
       aria-label={label}
-      // data-click={name}
-      // onClick={onClick}
-      onClick={() =>
-        onButtonClick(
-          writeRef.current!,
-          textChange,
-          // dataClick.replace("data-", "")
-          name
-        )
-      }
+      onClick={() => onButtonClick(writeRef.current!, textChange, name)}
     >
-      {/* <Icon size={16} name={dataClick} fill="currentColor" /> */}
       <Icon size={16} name={name} fill="currentColor" />
     </button>
   );
@@ -324,22 +295,6 @@ export const Toolbar: React.FC = () => {
         <EditorButton name="numbered_list" />
         <EditorButton name="task_list" />
       </div>
-      {/*
-      <div className="toolbar-group">
-       <EditorButton
-         className="tooltipped-nw"
-         label="Directly mention a user or team"
-         data-click="mention_user"
-       />
-       <EditorButton
-         className="tooltipped-nw"
-         label="Reference an issue or pull request"
-         data-click="reference"
-       />
-         <EditorButton label="Insert a reply" data-click="insert_reply" />
-       <EditorButton label="Select a reply" data-click="select_reply" />
-      </div>
-      */}
     </ToolbarContainer>
   );
 };
