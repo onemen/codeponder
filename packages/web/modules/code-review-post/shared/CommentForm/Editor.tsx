@@ -11,30 +11,7 @@ import React, {
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
 import { executeCommand, keyCommands } from "./commands";
-import { Toolbar } from "./Toolbar";
-
-const NavTab = styled.button`
-  appearance: none;
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-bottom: 0;
-  color: #586069;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 1.4rem;
-  line-height: 1.5;
-  padding: 0.8rem 1.2rem;
-  text-decoration: none;
-  user-select: none;
-  white-space: nowrap;
-
-  &.selected {
-    background-color: #ffffff;
-    border-color: #d1d5da;
-    border-radius: 3px 3px 0 0;
-    color: #24292e;
-  }
-`;
+import { Tab, Toolbar } from "./Toolbar";
 
 const EditorContainer = styled.div`
   border-radius: inherit;
@@ -92,8 +69,6 @@ interface EditorProps {
   textChange: (e: any) => void;
 }
 
-type Tab = "write" | "preview";
-
 let isIE8 = false;
 
 export const Editor: React.FC<EditorProps> = React.memo(
@@ -127,7 +102,7 @@ export const Editor: React.FC<EditorProps> = React.memo(
 
     const handleKeyCommand = useCallback((e: React.KeyboardEvent) => {
       const command = keyCommands(e);
-      if (command) {
+      if (!isIE8 && command) {
         handleCommand(command);
         e.preventDefault();
       }
@@ -150,25 +125,12 @@ export const Editor: React.FC<EditorProps> = React.memo(
 
     return (
       <EditorContainer>
-        <div className="editor-header">
-          {tab === "write" && !isIE8 && <Toolbar onCommand={handleCommand} />}
-          <nav className="editor-header-tabs">
-            <NavTab
-              type="button"
-              className={classNames({ selected: tab === "write" })}
-              onClick={() => handleTabChange("write")}
-            >
-              Write
-            </NavTab>
-            <NavTab
-              type="button"
-              className={classNames({ selected: tab === "preview" })}
-              onClick={() => handleTabChange("preview")}
-            >
-              Preview
-            </NavTab>
-          </nav>
-        </div>
+        <Toolbar
+          tab={tab}
+          isIE8={isIE8}
+          onCommand={handleCommand}
+          handleTabChange={handleTabChange}
+        />
         <div
           className={classNames("write-content", { selected: tab === "write" })}
         >

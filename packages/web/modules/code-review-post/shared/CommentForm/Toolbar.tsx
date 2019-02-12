@@ -1,9 +1,37 @@
 import { styled } from "@codeponder/ui";
+import classNames from "classnames";
 import React from "react";
 import { CommandButton } from "./CommandButton";
 
-const ToolbarContainer = styled.div`
+const NavTab = styled.button`
+  appearance: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  color: #586069;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  padding: 0.8rem 1.2rem;
+  text-decoration: none;
+  user-select: none;
+  white-space: nowrap;
+
+  &.selected {
+    background-color: #ffffff;
+    border-color: #d1d5da;
+    border-radius: 3px 3px 0 0;
+    color: #24292e;
+  }
+`;
+
+const CommandContainer = styled.div`
   float: right;
+
+  &.hidden {
+    display: none;
+  }
 
   .toolbar-group {
     display: inline-block;
@@ -121,28 +149,53 @@ const ToolbarContainer = styled.div`
   }
 `;
 
+export type Tab = "write" | "preview";
+
 type ToolbarProps = {
+  tab: Tab;
+  isIE8: boolean;
   onCommand: (name: string) => void;
+  handleTabChange: (tab: Tab) => void;
 };
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onCommand }) => {
-  return (
-    <ToolbarContainer>
-      <div className="toolbar-group">
-        <CommandButton onCommand={onCommand} name="header_text" />
-        <CommandButton onCommand={onCommand} name="bold_text" />
-        <CommandButton onCommand={onCommand} name="italic_text" />
-      </div>
-      <div className="toolbar-group">
-        <CommandButton onCommand={onCommand} name="insert_quote" />
-        <CommandButton onCommand={onCommand} name="insert_code" />
-        <CommandButton onCommand={onCommand} name="insert_link" />
-      </div>
-      <div className="toolbar-group">
-        <CommandButton onCommand={onCommand} name="bulleted_list" />
-        <CommandButton onCommand={onCommand} name="numbered_list" />
-        <CommandButton onCommand={onCommand} name="task_list" />
-      </div>
-    </ToolbarContainer>
-  );
-};
+export const Toolbar: React.FC<ToolbarProps> = React.memo(
+  ({ tab, isIE8, onCommand, handleTabChange }) => (
+    <div className="editor-header">
+      {!isIE8 && (
+        <CommandContainer className={classNames({ hidden: tab !== "write" })}>
+          <div className="toolbar-group">
+            <CommandButton onCommand={onCommand} name="header_text" />
+            <CommandButton onCommand={onCommand} name="bold_text" />
+            <CommandButton onCommand={onCommand} name="italic_text" />
+          </div>
+          <div className="toolbar-group">
+            <CommandButton onCommand={onCommand} name="insert_quote" />
+            <CommandButton onCommand={onCommand} name="insert_code" />
+            <CommandButton onCommand={onCommand} name="insert_link" />
+          </div>
+          <div className="toolbar-group">
+            <CommandButton onCommand={onCommand} name="bulleted_list" />
+            <CommandButton onCommand={onCommand} name="numbered_list" />
+            <CommandButton onCommand={onCommand} name="task_list" />
+          </div>
+        </CommandContainer>
+      )}
+      <nav className="editor-header-tabs">
+        <NavTab
+          type="button"
+          className={classNames({ selected: tab === "write" })}
+          onClick={() => handleTabChange("write")}
+        >
+          Write
+        </NavTab>
+        <NavTab
+          type="button"
+          className={classNames({ selected: tab === "preview" })}
+          onClick={() => handleTabChange("preview")}
+        >
+          Preview
+        </NavTab>
+      </nav>
+    </div>
+  )
+);
