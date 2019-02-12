@@ -1,4 +1,5 @@
 import { styled } from "@codeponder/ui";
+import classNames from "classnames";
 import { Field } from "formik";
 import React, {
   useCallback,
@@ -85,57 +86,27 @@ const EditorContainer = styled.div`
   }
 `;
 
-const getPanelForTab = (container: HTMLDivElement, tab: HTMLButtonElement) =>
-  container.querySelector(`.${tab.dataset.content}`) as HTMLDivElement;
-
 interface EditorProps {
   isReply: boolean;
   text: string;
   textChange: (e: any) => void;
 }
 
+type Tab = "write" | "preview";
+
 let isIE8 = false;
 
 export const Editor: React.FC<EditorProps> = React.memo(
   ({ isReply, text, textChange }) => {
     const writeRef = useRef<HTMLTextAreaElement>(null);
-    const markdownRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [preview, setPreview] = useState(false);
+    const [tab, setTab] = useState<Tab>("write");
 
-    const textTrimmed = text.trim();
-
-    const handleTabChange = useCallback(
-      async e => {
-        const target = e.currentTarget as HTMLButtonElement;
-        const container = containerRef.current!;
-        const current = container.querySelector(
-          ".selected"
-        ) as HTMLButtonElement;
-        if (!current) return;
-        const currentPanel = getPanelForTab(container, current);
-        const targetPanel = getPanelForTab(container, target);
-
-        // update markdown preview
-        const isPreView = target.dataset.content == "preview-content";
-        if (isPreView) {
-          const height = currentPanel.getBoundingClientRect().height;
-          targetPanel.style.minHeight = `${height}px`;
-
-          await loadLanguagesForMarkdown(textTrimmed);
-        }
-        setPreview(isPreView);
-
-        currentPanel.classList.remove("selected");
-        current.classList.remove("selected");
-        current.removeAttribute("aria-selected");
-
-        targetPanel.classList.add("selected");
-        target.classList.add("selected");
-        target.setAttribute("aria-selected", "true");
-      },
-      [text]
-    );
+    const handleTabChange = useCallback(async (newTab: Tab) => {
+      if (newTab === "preview") {
+        await loadLanguagesForMarkdown(writeRef.current!.value.trim());
+      }
+      setTab(newTab);
+    }, []);
 
     const handleCommand = useCallback((name: string) => {
       const textarea = writeRef.current!;
@@ -178,29 +149,29 @@ export const Editor: React.FC<EditorProps> = React.memo(
     }, [text]);
 
     return (
-      <EditorContainer ref={containerRef}>
+      <EditorContainer>
         <div className="editor-header">
-          {!preview && !isIE8 && <Toolbar onCommand={handleCommand} />}
+          {tab === "write" && !isIE8 && <Toolbar onCommand={handleCommand} />}
           <nav className="editor-header-tabs">
             <NavTab
               type="button"
-              className="selected"
-              data-content="write-content"
-              aria-selected="true"
-              onClick={handleTabChange}
+              className={classNames({ selected: tab === "write" })}
+              onClick={() => handleTabChange("write")}
             >
               Write
             </NavTab>
             <NavTab
               type="button"
-              data-content="preview-content"
-              onClick={handleTabChange}
+              className={classNames({ selected: tab === "preview" })}
+              onClick={() => handleTabChange("preview")}
             >
               Preview
             </NavTab>
           </nav>
         </div>
-        <div className="write-content selected">
+        <div
+          className={classNames("write-content", { selected: tab === "write" })}
+        >
           <Field
             inputRef={writeRef}
             component={CommentInputField}
@@ -212,11 +183,17 @@ export const Editor: React.FC<EditorProps> = React.memo(
             as="textarea"
           />
         </div>
-        <div ref={markdownRef} className="preview-content markdown-body">
-          {preview && (
-            <MarkdownPreview
-              source={textTrimmed ? textTrimmed : "Nothing to preview"}
-            />
+        <div
+          className={classNames("preview-content", "markdown-body", {
+            selected: tab === "preview",
+          })}
+          style={{
+            minHeight:
+              (writeRef.current && writeRef.current.style.height) || "100px",
+          }}
+        >
+          {tab === "preview" && (
+            <MarkdownPreview source={text.trim() || "Nothing to preview"} />
           )}
         </div>
       </EditorContainer>
