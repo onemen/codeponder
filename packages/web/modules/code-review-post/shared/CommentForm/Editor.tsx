@@ -43,6 +43,7 @@ const EditorContainer = styled.div`
   }
 
   & .preview-content {
+    border: 1px solid transparent;
     border-bottom: 1px solid #d1d5da88;
     padding: 0.8rem;
     line-height: 1;
@@ -77,10 +78,13 @@ export const Editor: React.FC<EditorProps> = React.memo(
     const [tab, setTab] = useState<Tab>("write");
 
     const handleTabChange = useCallback(async (newTab: Tab) => {
-      if (newTab === "preview") {
+      if (newTab === "write") {
+        await setTab("write");
+        writeRef.current!.focus();
+      } else {
         await loadLanguagesForMarkdown(writeRef.current!.value.trim());
+        setTab("preview");
       }
-      setTab(newTab);
     }, []);
 
     const handleCommand = useCallback((name: string) => {
@@ -88,8 +92,8 @@ export const Editor: React.FC<EditorProps> = React.memo(
     }, []);
 
     const handleKeyCommand = useCallback((e: React.KeyboardEvent) => {
-      const command = keyBoardCommands(e);
-      if (!isIE8 && command) {
+      const command = !isIE8 && keyBoardCommands(e);
+      if (command) {
         handleCommand(command);
         e.preventDefault();
       }
@@ -132,19 +136,14 @@ export const Editor: React.FC<EditorProps> = React.memo(
             as="textarea"
           />
         </div>
-        <div
-          className={classNames("preview-content", "markdown-body", {
-            selected: tab === "preview",
-          })}
-          style={{
-            minHeight:
-              (writeRef.current && writeRef.current.style.height) || "100px",
-          }}
-        >
-          {tab === "preview" && (
+        {tab === "preview" && (
+          <div
+            className="preview-content markdown-body selected"
+            style={{ minHeight: writeRef.current!.style.height || "100px" }}
+          >
             <MarkdownPreview source={text.trim() || "Nothing to preview"} />
-          )}
-        </div>
+          </div>
+        )}
       </EditorContainer>
     );
   }
