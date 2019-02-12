@@ -51,7 +51,7 @@ export const commands: CommandsMap = {
   },
 };
 
-export const executeCommand = (
+const executeCommand = (
   name: string,
   text: string,
   selectionStart: number | null,
@@ -125,7 +125,7 @@ export const executeCommand = (
   };
 };
 
-export const keyCommands = (e: React.KeyboardEvent) => {
+export const keyBoardCommands = (e: React.KeyboardEvent) => {
   const control = !e.altKey && (e.ctrlKey || e.metaKey);
   if (control) {
     switch (e.keyCode) {
@@ -138,4 +138,24 @@ export const keyCommands = (e: React.KeyboardEvent) => {
     }
   }
   return "";
+};
+
+export const commandsHandler = (
+  name: string,
+  textarea: HTMLTextAreaElement,
+  textChange: (e: any) => void
+) => {
+  const { value: text, selectionStart, selectionEnd } = textarea;
+  const { newText, start, end } = executeCommand(
+    name,
+    text,
+    selectionStart,
+    selectionEnd
+  );
+
+  textChange({ target: { name: "text", value: newText } });
+  textarea.selectionStart = start;
+  textarea.selectionEnd = end;
+  textarea.focus();
+  textarea.style.height = textarea.scrollHeight + 2 + "px";
 };

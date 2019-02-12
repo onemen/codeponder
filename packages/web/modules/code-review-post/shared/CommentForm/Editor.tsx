@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
-import { executeCommand, keyCommands } from "./commands";
+import { commandsHandler, keyBoardCommands } from "./commands";
 import { Tab, Toolbar } from "./Toolbar";
 
 const EditorContainer = styled.div`
@@ -84,24 +84,11 @@ export const Editor: React.FC<EditorProps> = React.memo(
     }, []);
 
     const handleCommand = useCallback((name: string) => {
-      const textarea = writeRef.current!;
-      const { value: text, selectionStart, selectionEnd } = textarea;
-      const { newText, start, end } = executeCommand(
-        name,
-        text,
-        selectionStart,
-        selectionEnd
-      );
-
-      textChange({ target: { name: "text", value: newText } });
-      textarea.selectionStart = start;
-      textarea.selectionEnd = end;
-      textarea.focus();
-      textarea.style.height = textarea.scrollHeight + 2 + "px";
+      commandsHandler(name, writeRef.current!, textChange);
     }, []);
 
     const handleKeyCommand = useCallback((e: React.KeyboardEvent) => {
-      const command = keyCommands(e);
+      const command = keyBoardCommands(e);
       if (!isIE8 && command) {
         handleCommand(command);
         e.preventDefault();
