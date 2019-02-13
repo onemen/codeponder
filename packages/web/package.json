@@ -17,7 +17,6 @@
     "apollo-boost": "0.1.27",
     "apollo-link-context": "1.0.12",
     "babel-plugin-import": "1.11.0",
-    "classnames": "^2.2.6",
     "cookie": "0.3.1",
     "downshift": "3.2.0",
     "formik": "1.4.2",
@@ -37,7 +36,6 @@
     "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
-    "@types/classnames": "^2.2.7",
     "@types/cookie": "0.3.2",
     "@types/lodash": "4.14.120",
     "@types/lodash.get": "4.4.4",

@@ -1,5 +1,4 @@
 import { styled } from "@codeponder/ui";
-import classNames from "classnames";
 import React from "react";
 import { CommandButton } from "./CommandButton";
 
@@ -162,7 +161,7 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(
   ({ tab, isIE8, onCommand, handleTabChange }) => (
     <div className="editor-header">
       {!isIE8 && (
-        <CommandContainer className={classNames({ hidden: tab !== "write" })}>
+        <CommandContainer className={`${tab !== "write" ? "hidden" : ""}`}>
           <div className="toolbar-group">
             <CommandButton onCommand={onCommand} name="header_text" />
             <CommandButton onCommand={onCommand} name="bold_text" />
@@ -183,14 +182,14 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(
       <nav className="editor-header-tabs">
         <NavTab
           type="button"
-          className={classNames({ selected: tab === "write" })}
+          className={`${tab === "write" ? "selected" : ""}`}
           onClick={() => handleTabChange("write")}
         >
           Write
         </NavTab>
         <NavTab
           type="button"
-          className={classNames({ selected: tab === "preview" })}
+          className={`${tab === "preview" ? "selected" : ""}`}
           onClick={() => handleTabChange("preview")}
         >
           Preview

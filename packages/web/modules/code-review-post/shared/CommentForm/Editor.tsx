@@ -1,5 +1,4 @@
 import { styled } from "@codeponder/ui";
-import classNames from "classnames";
 import { Field } from "formik";
 import React, {
   useCallback,
@@ -122,9 +121,7 @@ export const Editor: React.FC<EditorProps> = React.memo(
           onCommand={handleCommand}
           handleTabChange={handleTabChange}
         />
-        <div
-          className={classNames("write-content", { selected: tab === "write" })}
-        >
+        <div className={`${tab === "write" ? "selected " : ""}write-content`}>
           <Field
             inputRef={writeRef}
             component={CommentInputField}
