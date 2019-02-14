@@ -33,6 +33,7 @@
     "react-markdown": "^4.0.6",
     "react-modal": "3.8.1",
     "react-select": "2.3.0",
+    "react-syntax-highlighter": "^10.1.2",
     "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
@@ -45,6 +46,7 @@
     "@types/react-dom": "16.0.11",
     "@types/react-modal": "3.8.0",
     "@types/react-select": "2.0.11",
+    "@types/react-syntax-highlighter": "^10.1.0",
     "@types/serve-favicon": "^2.2.30",
     "@zeit/next-css": "1.0.1",
     "@zeit/next-typescript": "1.1.1",

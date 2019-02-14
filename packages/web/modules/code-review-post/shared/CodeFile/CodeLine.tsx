@@ -1,4 +1,6 @@
 import { memo, useState } from "react";
+import ReactDOMServer from "react-dom/server";
+import createElement from "react-syntax-highlighter/dist/create-element";
 import { CodeReviewQuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestion } from "../CreateQuestion";
 import { CodeDiscussionView } from "./CodeDiscussionView";
@@ -7,19 +9,33 @@ interface RenderLineProps {
   question?: CodeReviewQuestionInfoFragment;
   line: string;
   lineNum: number;
+  stylesheet: string;
+  useInlineStyles: boolean;
 }
 
 export const RenderLine: React.FC<RenderLineProps> = memo(
-  ({ question, line, lineNum }) => {
+  ({ question, line, lineNum, stylesheet, useInlineStyles }) => {
     const [showEditor, setShowEditor] = useState(false);
     const [showDiscussion, setShowDiscussion] = useState(false);
+
+    const html = ReactDOMServer.renderToStaticMarkup(
+      <>
+        <button className="btn-open-edit token-btn">+</button>
+        {createElement({
+          node: line,
+          stylesheet,
+          useInlineStyles,
+          key: `code-segment${lineNum}`,
+        })}
+      </>
+    );
 
     return (
       <div key={lineNum} className="token-line">
         <span
           className="token-html"
           data-line-number={lineNum}
-          dangerouslySetInnerHTML={{ __html: line }}
+          dangerouslySetInnerHTML={{ __html: html }}
           onClick={e => {
             if ((e.target as any).classList.contains("btn-open-edit")) {
               if (question) {
@@ -29,7 +45,15 @@ export const RenderLine: React.FC<RenderLineProps> = memo(
               }
             }
           }}
-        />
+        >
+          {/*           <button className="btn-open-edit token-btn">+</button>
+          {createElement({
+            node: line,
+            stylesheet,
+            useInlineStyles,
+            key: `code-segment${lineNum}`,
+          })} */}
+        </span>
         {question && (
           <CodeDiscussionView
             question={question}

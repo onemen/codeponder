@@ -1,17 +1,13 @@
 import { CodeCard, css } from "@codeponder/ui";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
+import { PrismAsync as SyntaxHighlighter } from "react-syntax-highlighter";
+import { coy } from "react-syntax-highlighter/dist/styles/prism";
 import {
   CodeReviewQuestionInfoFragment,
   FindCodeReviewQuestionsComponent,
 } from "../../../../generated/apollo-components";
-import { getHighlightedCode } from "../../../../utils/highlightCode";
 import { PostContext } from ".././PostContext";
 import { RenderLine } from "./CodeLine";
-
-interface LoadingCodeState {
-  pending: boolean;
-  resolved?: string[];
-}
 
 /*
  * *Styles for the line numbers coming from the server
@@ -34,30 +30,8 @@ const selectLines = (prop: CodeReviewQuestionInfoFragment[]) => {
   `;
 };
 
-const PLUSBUTTON = `<button class="btn-open-edit token-btn">+</button>`;
-
-const useHighlight = (lang: string, code: string) => {
-  const [highlightCode, setHighlightCode] = useState<LoadingCodeState>({
-    pending: true,
-  });
-
-  useEffect(() => {
-    getHighlightedCode(code, lang).then(highlightedCode => {
-      const tokens = highlightedCode.split("\n").map(line => {
-        return `${PLUSBUTTON}${line}`;
-      });
-
-      setHighlightCode({ pending: false, resolved: tokens });
-    });
-
-    return () => {};
-  }, []);
-  return highlightCode;
-};
-
 export const CodeFile: React.FC = () => {
   const { code, lang, path, postId } = useContext(PostContext);
-  const highlightCode = useHighlight(lang, code || "");
 
   return (
     <FindCodeReviewQuestionsComponent
@@ -67,7 +41,7 @@ export const CodeFile: React.FC = () => {
       }}
     >
       {({ data, loading }) => {
-        if (!data || loading || highlightCode.pending) {
+        if (!data || loading) {
           return null;
         }
 
@@ -80,23 +54,39 @@ export const CodeFile: React.FC = () => {
         });
 
         return (
-          <CodeCard
-            lang={lang}
+          <SyntaxHighlighter
+            PreTag={CodeCard}
+            CodeTag="div"
+            style={coy}
+            wrapLines="true"
+            language={lang}
+            renderer={renderer(questionMap)}
             selectedLines={selectLines(data.findCodeReviewQuestions)}
           >
-            {highlightCode.resolved!.map((line, index) => {
-              return (
-                <RenderLine
-                  key={index}
-                  question={questionMap[index + 1]}
-                  line={line}
-                  lineNum={index + 1}
-                />
-              );
-            })}
-          </CodeCard>
+            {code || ""}
+          </SyntaxHighlighter>
         );
       }}
     </FindCodeReviewQuestionsComponent>
   );
+};
+
+const renderer = (
+  questionMap: Record<string, CodeReviewQuestionInfoFragment>
+) => {
+  return ({ rows, stylesheet, useInlineStyles }: any) => {
+    rows.pop();
+    return rows.map((line: any, index: any) => {
+      return (
+        <RenderLine
+          key={index}
+          question={questionMap[index + 1]}
+          line={line}
+          lineNum={index + 1}
+          stylesheet={stylesheet}
+          useInlineStyles={useInlineStyles}
+        />
+      );
+    });
+  };
 };
