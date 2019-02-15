@@ -78,7 +78,9 @@ export const CommentForm = ({
       cleanSelectedLines(lineNum);
     }
     formRef.current!.classList.remove("is-open");
-    submitForm({ cancel: true } as TextEditorResult);
+    setTimeout(() => {
+      submitForm({ cancel: true } as TextEditorResult);
+    }, 200);
   }, []);
 
   return (
