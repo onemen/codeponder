@@ -1,7 +1,8 @@
 import { CommentCard, styled } from "@codeponder/ui";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { CodeReviewQuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestionReply } from "../CreateQuestionReply";
+import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
 import { PostContext } from "../PostContext";
 
 interface CodeDiscussionViewProps {
@@ -49,14 +50,47 @@ const badgeClassList = (open: boolean) => {
   return open ? `${classNames} is-open` : classNames;
 };
 
+// load all languages for markdown text in question and replies
+const useLoadingLanguage = (question: CodeReviewQuestionInfoFragment) => {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const discussion = [question, ...question.replies];
+    const markdownText = discussion.map(({ text }) => text).join("\n");
+    loadLanguagesForMarkdown(markdownText).then(() => {
+      setLoading(false);
+    });
+  }, [question]);
+
+  return loading;
+};
+
 export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
   question,
   toggleDiscussion,
   showDiscussion,
   lineNum,
 }) => {
+  const discussionRef = useRef<HTMLDivElement>(null);
   const { owner } = useContext(PostContext);
   const [showReply, setShowReply] = useState(false);
+  const loadingLanguage = useLoadingLanguage(question);
+
+  useEffect(() => {
+    if (showDiscussion) {
+      discussionRef.current!.classList.add("is-open");
+    }
+  }, [showDiscussion, showReply]);
+
+  useEffect(() => {
+    // we only need maxHeight for the animation, we remove it after the
+    // animation ends for the case the height is grater than 2000px
+    if (showDiscussion) {
+      const id = setTimeout(() => {
+        discussionRef.current!.style.maxHeight = "none";
+      }, 200);
+      return () => clearTimeout(id);
+    }
+  }, [showDiscussion]);
 
   return (
     <>
@@ -65,7 +99,15 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
         title={showDiscussion ? COLLAPSE : EXPANDED}
         onClick={() => {
           setShowReply(false);
-          toggleDiscussion();
+          if (showDiscussion) {
+            discussionRef.current!.style.maxHeight = "";
+            discussionRef.current!.classList.remove("is-open");
+            setTimeout(() => {
+              toggleDiscussion();
+            }, 200);
+          } else {
+            toggleDiscussion();
+          }
         }}
       >
         <span className="badge-counter">{question.numReplies}</span>
@@ -73,7 +115,8 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
       </button>
       {showDiscussion && (
         <DiscussionContainer
-          className="inner-animate-box is-open"
+          ref={discussionRef}
+          className="inner-animate-box"
           showReply={showReply}
         >
           <DiscussionNavBar>
@@ -82,16 +125,22 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
             </h2>
             <span className="header-sub-title">{question.lineNum}</span>
           </DiscussionNavBar>
-          {[question, ...question.replies].map((reply, key) => {
-            return (
-              <CommentCard
-                {...reply}
-                isOwner={reply.creator.id === owner}
-                key={key}
-                onReplyClick={() => setShowReply(true)}
-              />
-            );
-          })}
+          {!loadingLanguage &&
+            [question, ...question.replies].map(({ text, ...props }, key) => {
+              const markdown = MarkdownPreview({
+                source: text,
+                className: "markdown-body",
+              });
+              return (
+                <CommentCard
+                  {...props}
+                  markdown={markdown}
+                  isOwner={props.creator.id === owner}
+                  key={key}
+                  onReplyClick={() => setShowReply(true)}
+                />
+              );
+            })}
         </DiscussionContainer>
       )}
       {showReply && (

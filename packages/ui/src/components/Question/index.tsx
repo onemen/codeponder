@@ -8,7 +8,7 @@ import { MyButton } from "../MyButton";
 
 interface Props {
   id: string;
-  text: string;
+  markdown?: React.ReactElement<any> | null;
   programmingLanguage?: string | null;
   codeSnippet?: string | null;
   createdAt: string;
@@ -29,7 +29,6 @@ interface QuestionProps extends Props {
 
 interface CommentCardProps extends Props {
   isOwner: boolean;
-  newComment?: boolean;
   numReplies?: number;
   onReplyClick?: (e: any) => void;
 }
@@ -37,7 +36,6 @@ interface CommentCardProps extends Props {
 interface BaseProps extends Props {
   title?: string;
   isOwner?: boolean;
-  newComment?: boolean;
   numReplies?: number;
   onReplyClick?: (e: any) => void;
   variant: "outline" | "flat";
@@ -65,8 +63,14 @@ const CommentContainer = styled(Card as any)`
 
   & .comment-text {
     margin: 0;
-    padding: 0.7rem;
+    padding: 0.7rem 1.4rem;
     white-space: normal;
+
+    & ol,
+    & ul,
+    & dl {
+      padding-left: 1.5em;
+    }
   }
 
   & .btn-reply {
@@ -101,14 +105,14 @@ export const Question = ({ path, ...props }: QuestionProps) => {
 export const CommentCard = (props: CommentCardProps) => {
   return (
     <CommentContainer>
-      <BaseCommentCard {...props} variant="outline" />
+      <BaseCommentCard {...props} title="" variant="outline" />
     </CommentContainer>
   );
 };
 
 const BaseCommentCard = ({
   title,
-  text,
+  markdown,
   path,
   numReplies,
   createdAt,
@@ -163,11 +167,10 @@ const BaseCommentCard = ({
       <Text
         className="comment-text"
         my="1rem"
-        fontFamily="rubik"
         fontSize={2}
-        color="#78909C"
+        color="rgb(36, 41, 46)"
       >
-        {title || text}
+        {title || markdown}
       </Text>
     </>
   );
