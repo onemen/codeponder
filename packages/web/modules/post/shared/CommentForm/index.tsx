@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useRef } from "react";
 import * as yup from "yup";
 import { scrollToView } from "../../../../utils/domScrollUtils";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
+import { MarkdownEditor } from "../MarkdownEditor";
 import { FormContainer, FormRow } from "./components";
-import { Editor } from "./Editor";
 
 export interface TextEditorProps {
   isReply: boolean;
@@ -124,7 +124,7 @@ export const CommentForm = ({
               </FormRow>
             )}
             <div className="editor-outer-box">
-              <Editor
+              <MarkdownEditor
                 isReply={isReply}
                 text={values.text}
                 textChange={handleChange}

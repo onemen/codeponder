@@ -8,8 +8,8 @@ import React, {
   useState,
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
-import { loadLanguagesForMarkdown, MarkdownPreview } from "../MarkdownPreview";
 import { commandsHandler, keyBoardCommands } from "./commands";
+import { loadLanguagesForMarkdown, MarkdownPreview } from "./Preview";
 import { Tab, Toolbar } from "./Toolbar";
 
 const EditorContainer = styled.div`
@@ -71,7 +71,7 @@ interface EditorProps {
 
 let isIE8 = false;
 
-export const Editor: React.FC<EditorProps> = React.memo(
+export const MarkdownEditor: React.FC<EditorProps> = React.memo(
   ({ isReply, text, textChange }) => {
     const writeRef = useRef<HTMLTextAreaElement>(null);
     const [tab, setTab] = useState<Tab>("write");
@@ -136,7 +136,9 @@ export const Editor: React.FC<EditorProps> = React.memo(
         {tab === "preview" && (
           <div
             className="preview-content markdown-body selected"
-            style={{ minHeight: writeRef.current!.style.height || "100px" }}
+            style={{
+              minHeight: writeRef.current!.style.height || "100px",
+            }}
           >
             <MarkdownPreview source={text.trim() || "Nothing to preview"} />
           </div>
