@@ -51,10 +51,10 @@ const badgeClassList = (open: boolean) => {
 };
 
 // load all languages for markdown text in question and replies
-const useLoadingLanguage = (question: CodeReviewQuestionInfoFragment) => {
+const useLoadingLanguage = (question: QuestionInfoFragment) => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const discussion = [question, ...question.replies];
+    const discussion = [question, ...question.comments];
     const markdownText = discussion.map(({ text }) => text).join("\n");
     loadLanguagesForMarkdown(markdownText).then(() => {
       setLoading(false);
