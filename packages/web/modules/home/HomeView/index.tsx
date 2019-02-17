@@ -1,12 +1,12 @@
 import { MyButton, PostRow, SidebarCard, Topic } from "@codeponder/ui";
 import { NextContext } from "next";
 import * as React from "react";
-import { Box } from "rebass";
+import { Box, Text } from "rebass";
 import {
-  FindCodeReviewPostComponent,
-  FindCodeReviewPostQuery,
+  FindPostComponent,
+  FindPostQuery,
 } from "../../../generated/apollo-components";
-import { findCodeReviewPostQuery } from "../../../graphql/code-review-post/queries/findCodeReviewPost";
+import { findPostQuery } from "../../../graphql/post/queries/findPost";
 import { Link } from "../../../server/routes";
 import { Layout } from "../../shared/Layout";
 
@@ -54,7 +54,7 @@ export class HomeView extends React.Component<Props, State> {
   render() {
     return (
       <Layout title="Code Ponder">
-        <FindCodeReviewPostComponent
+        <FindPostComponent
           variables={{
             input: {
               ...this.state,
@@ -79,9 +79,9 @@ export class HomeView extends React.Component<Props, State> {
                   }}
                 >
                   <SidebarCard flex="1">
-                    {data && data.findCodeReviewPost && (
+                    {data && data.findPost && (
                       <>
-                        {data.findCodeReviewPost.posts.map(post => (
+                        {data.findPost.posts.map(post => (
                           <PostRow
                             key={post.id}
                             Link={Link}
@@ -95,13 +95,13 @@ export class HomeView extends React.Component<Props, State> {
                             {...post}
                           />
                         ))}
-                        {data.findCodeReviewPost.hasMore ? (
+                        {data.findPost.hasMore ? (
                           <Box my="1.6rem" ml="1.6rem">
                             <MyButton
                               variant="primary"
                               onClick={async () => {
                                 await fetchMore({
-                                  query: findCodeReviewPostQuery,
+                                  query: findPostQuery,
                                   variables: {
                                     input: {
                                       ...this.state,
@@ -110,7 +110,7 @@ export class HomeView extends React.Component<Props, State> {
                                     },
                                   },
                                   updateQuery: (
-                                    previous: FindCodeReviewPostQuery,
+                                    previous: FindPostQuery,
                                     { fetchMoreResult }: any
                                   ) => {
                                     if (!fetchMoreResult) {
@@ -119,15 +119,13 @@ export class HomeView extends React.Component<Props, State> {
 
                                     return {
                                       ...previous,
-                                      findCodeReviewPost: {
-                                        ...previous.findCodeReviewPost,
+                                      findPost: {
+                                        ...previous.findPost,
                                         hasMore:
-                                          fetchMoreResult.findCodeReviewPost
-                                            .hasMore,
+                                          fetchMoreResult.findPost.hasMore,
                                         posts: [
-                                          ...previous.findCodeReviewPost.posts,
-                                          ...fetchMoreResult.findCodeReviewPost
-                                            .posts,
+                                          ...previous.findPost.posts,
+                                          ...fetchMoreResult.findPost.posts,
                                         ],
                                       },
                                     };
@@ -145,14 +143,17 @@ export class HomeView extends React.Component<Props, State> {
                       </>
                     )}
                   </SidebarCard>
-                  <SidebarCard flex="0 0 24rem" ml="4rem">
-                    i am sidebar
+                  <SidebarCard flex="0 0 24rem" ml="4rem" p="1rem">
+                    <Text fontFamily="rubik">
+                      With Code Ponder you can post your code from GitHub and
+                      get reviewed on it.
+                    </Text>
                   </SidebarCard>
                 </div>
               </div>
             );
           }}
-        </FindCodeReviewPostComponent>
+        </FindPostComponent>
       </Layout>
     );
   }

@@ -4,10 +4,12 @@ import {
   Mutation,
   Query,
   Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
+import { QuestionCommentNotification } from "../../entity/QuestionCommentNotification";
 import { User } from "../../entity/User";
 import { MyContext } from "../../types/Context";
 import { isAuthenticated } from "../shared/middleware/isAuthenticated";
@@ -16,8 +18,21 @@ import { isAuthenticated } from "../shared/middleware/isAuthenticated";
 export class UserResolver {
   constructor(
     @InjectRepository(User)
-    private readonly userRepo: Repository<User>
+    private readonly userRepo: Repository<User>,
+    @InjectRepository(QuestionCommentNotification)
+    private readonly questionCommentNotificationRepo: Repository<
+      QuestionCommentNotification
+    >
   ) {}
+
+  @FieldResolver()
+  async hasNotifications(@Root() user: User) {
+    const qc = await this.questionCommentNotificationRepo.findOne({
+      where: { questionAskerId: user.id, read: false },
+    });
+
+    return !!qc;
+  }
 
   @FieldResolver()
   accessToken(@Ctx() ctx: MyContext) {

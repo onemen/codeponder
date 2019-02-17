@@ -24,19 +24,20 @@ interface Props {
 
 interface QuestionProps extends Props {
   title: string;
-  numReplies: number;
+  numComments: number;
+  renderLink: (body: JSX.Element) => JSX.Element;
 }
 
 interface CommentCardProps extends Props {
   isOwner: boolean;
-  numReplies?: number;
+  numComments?: number;
   onReplyClick?: (e: any) => void;
 }
 
 interface BaseProps extends Props {
   title?: string;
   isOwner?: boolean;
-  numReplies?: number;
+  numComments?: number;
   onReplyClick?: (e: any) => void;
   variant: "outline" | "flat";
 }
@@ -88,16 +89,18 @@ export const GrayText = ({ children }: { children: React.ReactNode }) => (
   </Text>
 );
 
-export const Question = ({ path, ...props }: QuestionProps) => {
+export const Question = ({ path, renderLink, ...props }: QuestionProps) => {
   return (
     <Card p="1rem">
       <BaseCommentCard {...props} variant="flat" />
-      {path && (
-        <Flex alignItems="center">
-          <Icon name="link" fill="#a5a5a5" />
-          <GrayText>This code is a reference to: {path}</GrayText>
-        </Flex>
-      )}
+      {path &&
+        renderLink &&
+        renderLink(
+          <Flex alignItems="center">
+            <Icon name="link" fill="#a5a5a5" />
+            <GrayText>This code is a reference to: {path}</GrayText>
+          </Flex>
+        )}
     </Card>
   );
 };
@@ -114,7 +117,7 @@ const BaseCommentCard = ({
   title,
   markdown,
   path,
-  numReplies,
+  numComments,
   createdAt,
   creator: { username, pictureUrl },
   isOwner,
@@ -142,10 +145,10 @@ const BaseCommentCard = ({
               )}
             </Flex>
             <Flex>
-              {Number(numReplies) >= 0 && (
+              {Number(numComments) >= 0 && (
                 <>
                   <Icon size={12} name="comment" fill="#A5A5A5" />
-                  <GrayText>{numReplies}</GrayText>
+                  <GrayText>{numComments}</GrayText>
                 </>
               )}
               <Icon size={12} name="clock" fill="#A5A5A5" />

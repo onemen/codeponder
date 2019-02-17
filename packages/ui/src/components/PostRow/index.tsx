@@ -1,4 +1,4 @@
-import { distanceInWordsStrict } from "date-fns";
+import { distanceInWordsToNow } from "date-fns";
 import * as React from "react";
 import { Box, Card, Flex, Text } from "rebass";
 import styled from "../../theme/styled-components";
@@ -24,9 +24,11 @@ interface Props {
   getLinkProps: () => any;
 }
 
-const BorderCard = styled(Card)`
+export const PostRowContainer = styled(Card)`
   border-width: 0 0 0.1rem 0;
   border-style: solid;
+  padding: 1.2rem;
+  border-color: #e6eaef;
 `;
 
 export const PostRow: React.SFC<Props> = ({
@@ -41,12 +43,12 @@ export const PostRow: React.SFC<Props> = ({
   onTopicClick,
 }) => {
   const linkProps = getLinkProps();
-  const dtString = distanceInWordsStrict(new Date(), Date.parse(createdAt), {
+  const dtString = distanceInWordsToNow(Date.parse(createdAt), {
     addSuffix: true,
   });
 
   return (
-    <BorderCard p="1.2rem" borderColor="neutrals.3">
+    <PostRowContainer>
       <Flex justifyContent="center">
         <Avatar size={34} src={pictureUrl} alt="avatar" />
         <div
@@ -93,6 +95,6 @@ export const PostRow: React.SFC<Props> = ({
           </Box>
         </div>
       </Flex>
-    </BorderCard>
+    </PostRowContainer>
   );
 };

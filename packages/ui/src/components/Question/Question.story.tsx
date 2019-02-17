@@ -4,6 +4,7 @@ import * as React from "react";
 import { CommentCard, Question } from ".";
 
 const data = {
+  title: "iamtitle",
   id: "dafs",
   title: "i am a title",
   markdown: React.createElement(
@@ -13,7 +14,7 @@ const data = {
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Est consequuntur modi quas alias placeat aliquam vitae explicabo magni saepe commodi. Corporis ullam ratione fugit optio tempore provident voluptates commodi quasi!`
   ),
   codeSnippet: "i am code",
-  numReplies: 14,
+  numComments: 14,
   createdAt: "12/28/2018",
   path: "/packages/server/package.json",
   creator: {
@@ -27,7 +28,7 @@ const data = {
 
 storiesOf("Question", module).add("basic example", () => (
   <div style={{ display: "inline-block" }}>
-    <Question {...data} />
+    <Question renderLink={() => <div />} {...data} />
   </div>
 ));
 
