@@ -1,4 +1,3 @@
-import { styled } from "@codeponder/ui";
 import { Field } from "formik";
 import React, {
   useCallback,
@@ -9,59 +8,9 @@ import React, {
 } from "react";
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { commandsHandler, keyBoardCommands } from "./commands";
+import { EditorContainer } from "./components";
 import { loadLanguagesForMarkdown, MarkdownPreview } from "./Preview";
 import { Tab, Toolbar } from "./Toolbar";
-
-const EditorContainer = styled.div`
-  border-radius: inherit;
-
-  & .editor-header {
-    background-color: #f6f8fa;
-    border-top-left-radius: inherit;
-    border-top-right-radius: inherit;
-    border-bottom: 1px solid #d1d5da;
-    padding: 1rem 0.9rem 0 0.9rem;
-    margin-bottom: 1rem;
-    position: relative;
-
-    & .editor-header-tabs {
-      margin-bottom: -1px;
-    }
-  }
-
-  & .write-content,
-  & .preview-content {
-    background-color: #ffffff;
-    display: none;
-    margin: 0 1rem;
-  }
-
-  & .write-content.selected,
-  & .preview-content.selected {
-    display: block;
-  }
-
-  & .preview-content {
-    border: 1px solid transparent;
-    border-bottom: 1px solid #d1d5da88;
-    padding: 0.8rem;
-    line-height: 1;
-
-    /* move this part to a separate style */
-    & ol,
-    & ul,
-    & dl {
-      padding-left: 1.5em;
-    }
-  }
-
-  & .write-content textarea {
-    border: 1px solid #d1d5da88;
-    min-height: 100px;
-    padding: 0.8rem;
-    resize: vertical;
-  }
-`;
 
 interface EditorProps {
   isReply: boolean;
