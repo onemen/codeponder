@@ -33,6 +33,7 @@
     "react-markdown": "^4.0.6",
     "react-modal": "3.8.1",
     "react-select": "2.3.0",
+    "refractor": "^2.6.2",
     "serve-favicon": "^2.5.0"
   },
   "devDependencies": {

@@ -1,5 +1,7 @@
 import { CodeCard, css } from "@codeponder/ui";
+import * as React from "react";
 import { useContext, useEffect, useState } from "react";
+import ReactDOMServer from "react-dom/server";
 import {
   FindQuestionsComponent,
   QuestionInfoFragment,
@@ -36,6 +38,31 @@ const selectLines = (prop: QuestionInfoFragment[]) => {
 
 const PLUSBUTTON = `<button class="btn-open-edit token-btn">+</button>`;
 
+function mapChild(child, i, depth) {
+  if (child.tagName) {
+    const className =
+      child.properties && Array.isArray(child.properties.className)
+        ? child.properties.className.join(" ")
+        : child.properties.className;
+
+    return React.createElement(
+      child.tagName,
+      Object.assign({ key: `fract-${depth}-${i}` }, child.properties, {
+        className,
+      }),
+      child.children && child.children.map(mapWithDepth(depth + 1))
+    );
+  }
+
+  return child.value;
+}
+
+function mapWithDepth(depth) {
+  return function mapChildrenWithDepth(child, i) {
+    return mapChild(child, i, depth);
+  };
+}
+
 const useHighlight = (lang: string, code: string) => {
   const [highlightCode, setHighlightCode] = useState<LoadingCodeState>({
     pending: true,
@@ -43,7 +70,17 @@ const useHighlight = (lang: string, code: string) => {
 
   useEffect(() => {
     getHighlightedCode(code, lang).then(highlightedCode => {
-      const tokens = highlightedCode.split("\n").map(line => {
+      const value = highlightedCode.map(mapWithDepth(0));
+      console.log("value", highlightedCode.map(mapWithDepth(0)));
+
+      let html = ReactDOMServer.renderToStaticMarkup(
+        React.createElement("code", null, value)
+      );
+
+      html = html.replace(/^<code>|<\/code>?/, "");
+
+      // const tokens = highlightedCode.split("\n").map(line => {
+      const tokens = html.split("\n").map(line => {
         return `${PLUSBUTTON}${line}`;
       });
 
