@@ -95,6 +95,23 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
     }
   }, [showDiscussion]);
 
+  useEffect(() => {
+    if (showDiscussion) {
+      discussionRef.current!.classList.add("is-open");
+    }
+  }, [showDiscussion, showReply]);
+
+  useEffect(() => {
+    // we only need maxHeight for the animation, we remove it after the
+    // animation ends for the case the height is grater than 2000px
+    if (showDiscussion) {
+      const id = setTimeout(() => {
+        discussionRef.current!.style.maxHeight = "none";
+      }, 200);
+      return () => clearTimeout(id);
+    }
+  }, [showDiscussion]);
+
   return (
     <>
       <button
