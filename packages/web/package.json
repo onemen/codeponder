@@ -20,7 +20,6 @@
     "cookie": "0.3.1",
     "downshift": "3.2.0",
     "formik": "1.4.2",
-    "html-react-parser": "^0.6.1",
     "isomorphic-unfetch": "3.0.0",
     "lodash": "^4.17.11",
     "lodash.get": "4.4.2",
@@ -30,7 +29,6 @@
     "react": "^16.8.1",
     "react-apollo": "2.4.0",
     "react-dom": "^16.8.1",
-    "react-markdown": "^4.0.6",
     "react-modal": "3.8.1",
     "react-select": "2.3.0",
     "remark": "^10.0.1",
@@ -67,7 +65,6 @@
     "ts-node": "8.0.2",
     "ts-node-dev": "^1.0.0-pre.32",
     "tslint": "5.12.1",
-    "typed-react-markdown": "^0.1.0",
     "typescript": "3.2.4",
     "url-loader": "1.1.2"
   },

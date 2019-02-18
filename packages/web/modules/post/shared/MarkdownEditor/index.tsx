@@ -1,3 +1,4 @@
+import { MarkdownRenderer } from "@codeponder/ui";
 import { Field } from "formik";
 import React, {
   useCallback,
@@ -9,7 +10,6 @@ import React, {
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { commandsHandler, keyBoardCommands } from "./commands";
 import { EditorContainer } from "./components";
-import { loadLanguagesForMarkdown, MarkdownPreview } from "./Preview";
 import { Tab, Toolbar } from "./Toolbar";
 
 interface EditorProps {
@@ -30,7 +30,6 @@ export const MarkdownEditor: React.FC<EditorProps> = React.memo(
         await setTab("write");
         writeRef.current!.focus();
       } else {
-        await loadLanguagesForMarkdown(writeRef.current!.value.trim());
         setTab("preview");
       }
     }, []);
@@ -89,7 +88,7 @@ export const MarkdownEditor: React.FC<EditorProps> = React.memo(
               minHeight: writeRef.current!.style.height || "100px",
             }}
           >
-            <MarkdownPreview source={text.trim() || "Nothing to preview"} />
+            <MarkdownRenderer text={text.trim() || "Nothing to preview"} />
           </div>
         )}
       </EditorContainer>

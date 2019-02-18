@@ -1,5 +1,4 @@
-import Prism, { LanguageDefinition } from "prismjs/components/prism-core";
-import { nameToLang } from "./filenameToLang";
+import Prism from "prismjs/components/prism-core";
 
 const langDepMap: { [key: string]: string | string[] } = {
   javascript: "clike",
@@ -65,13 +64,6 @@ const langDepMap: { [key: string]: string | string[] } = {
   xquery: "markup",
 };
 
-export const loadLanguageList = (list: string[]) => {
-  return list
-    .map(nameToLang)
-    .filter(lang => !Prism.languages[lang])
-    .map(lang => loadLanguage(lang).catch(e => e));
-};
-
 const loadLanguage = async (lang: string) => {
   const deps = langDepMap[lang];
   if (deps) {
@@ -90,7 +82,7 @@ const loadLanguage = async (lang: string) => {
   return import(`prismjs/components/prism-${lang}.min`);
 };
 
-const loadLanguageForGrammar = async (lang: string) => {
+export const getHighlightedCode = async (code: string, lang: string) => {
   // check if the language has already been loaded
   let grammar = Prism.languages[lang];
   if (grammar === undefined) {
@@ -99,14 +91,6 @@ const loadLanguageForGrammar = async (lang: string) => {
     } catch {}
     grammar = Prism.languages[lang];
   }
-  return grammar;
-};
-
-export const getHighlightedCodeSync = (
-  code: string,
-  lang: string,
-  grammar: LanguageDefinition = Prism.languages[lang]
-) => {
   const mixedTokens =
     grammar !== undefined ? Prism.tokenize(code, grammar) : [code];
 
@@ -116,9 +100,4 @@ export const getHighlightedCodeSync = (
     lang as Prism.LanguageDefinition,
     {} as HTMLPreElement
   );
-};
-
-export const getHighlightedCode = async (code: string, lang: string) => {
-  const grammar = await loadLanguageForGrammar(lang);
-  return getHighlightedCodeSync(code, lang, grammar);
 };
