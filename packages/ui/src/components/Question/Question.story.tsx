@@ -4,7 +4,6 @@ import * as React from "react";
 import { CommentCard, Question } from ".";
 
 const data = {
-  title: "iamtitle",
   id: "dafs",
   title: "i am a title",
   markdown: React.createElement(

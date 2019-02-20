@@ -2,10 +2,7 @@ import { CommentCard, styled } from "@codeponder/ui";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { QuestionInfoFragment } from "../../../../generated/apollo-components";
 import { CreateQuestionReply } from "../CreateComment";
-import {
-  loadLanguagesForMarkdown,
-  MarkdownPreview,
-} from "../MarkdownEditor/Preview";
+import { MarkdownPreview } from "../MarkdownEditor/Preview";
 import { PostContext } from "../PostContext";
 
 interface CodeDiscussionViewProps {
@@ -53,20 +50,6 @@ const badgeClassList = (open: boolean) => {
   return open ? `${classNames} is-open` : classNames;
 };
 
-// load all languages for markdown text in question and replies
-const useLoadingLanguage = (question: QuestionInfoFragment) => {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const discussion = [question, ...question.comments];
-    const markdownText = discussion.map(({ text }) => text).join("\n");
-    loadLanguagesForMarkdown(markdownText).then(() => {
-      setLoading(false);
-    });
-  }, [question]);
-
-  return loading;
-};
-
 export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
   question,
   toggleDiscussion,
@@ -76,7 +59,6 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
   const discussionRef = useRef<HTMLDivElement>(null);
   const { owner } = useContext(PostContext);
   const [showReply, setShowReply] = useState(false);
-  const loadingLanguage = useLoadingLanguage(question);
 
   useEffect(() => {
     if (showDiscussion) {
@@ -146,22 +128,21 @@ export const CodeDiscussionView: React.FC<CodeDiscussionViewProps> = ({
             </h2>
             <span className="header-sub-title">{question.lineNum}</span>
           </DiscussionNavBar>
-          {!loadingLanguage &&
-            [question, ...question.comments].map(({ text, ...props }, key) => {
-              const markdown = MarkdownPreview({
-                source: text,
-                className: "markdown-body",
-              });
-              return (
-                <CommentCard
-                  {...props}
-                  markdown={markdown}
-                  isOwner={props.creator.id === owner}
-                  key={key}
-                  onReplyClick={() => setShowReply(true)}
-                />
-              );
-            })}
+          {[question, ...question.comments].map(({ text, ...props }, key) => {
+            const markdown = MarkdownPreview({
+              source: text,
+              className: "markdown-body",
+            });
+            return (
+              <CommentCard
+                {...props}
+                markdown={markdown}
+                isOwner={props.creator.id === owner}
+                key={key}
+                onReplyClick={() => setShowReply(true)}
+              />
+            );
+          })}
         </DiscussionContainer>
       )}
       {showReply && (

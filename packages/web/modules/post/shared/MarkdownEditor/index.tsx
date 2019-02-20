@@ -9,7 +9,7 @@ import React, {
 import { CommentInputField } from "../../../shared/formik-fields/CommentInputField";
 import { commandsHandler, keyBoardCommands } from "./commands";
 import { EditorContainer } from "./components";
-import { loadLanguagesForMarkdown, MarkdownPreview } from "./Preview";
+import { MarkdownPreview } from "./Preview";
 import { Tab, Toolbar } from "./Toolbar";
 
 interface EditorProps {
@@ -30,7 +30,6 @@ export const MarkdownEditor: React.FC<EditorProps> = React.memo(
         await setTab("write");
         writeRef.current!.focus();
       } else {
-        await loadLanguagesForMarkdown(writeRef.current!.value.trim());
         setTab("preview");
       }
     }, []);
